@@ -9,6 +9,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { AuthShell } from "#/components/auth-layout";
 import { GoogleButton } from "#/components/google-sign-in-button";
+import { Turnstile } from "#/components/turnstile";
 import { Button } from "#/components/ui/button";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
@@ -34,15 +35,25 @@ function LoginPage() {
 	const [useBackupCode, setUseBackupCode] = useState(false);
 	const [code, setCode] = useState("");
 	const [pending, setPending] = useState(false);
+	const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
 	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
+		if (!captchaToken) {
+			toast.error("Please complete the human verification first");
+			return;
+		}
 		setPending(true);
 
-		const { data, error: signInError } = await authClient.signIn.email({
-			email,
-			password,
-		});
+		const { data, error: signInError } = await authClient.signIn.email(
+			{
+				email,
+				password,
+			},
+			{
+				headers: { "x-captcha-response": captchaToken },
+			},
+		);
 
 		setPending(false);
 
@@ -144,17 +155,18 @@ function LoginPage() {
 							Forgot password?
 						</Link>
 					</div>
-					<Input
-						id="password"
-						type="password"
-						value={password}
-						onChange={(event) => setPassword(event.target.value)}
-						required
-					/>
-				</div>
-				<Button type="submit" disabled={pending}>
-					{pending ? "Signing in..." : "Sign in"}
-				</Button>
+				<Input
+					id="password"
+					type="password"
+					value={password}
+					onChange={(event) => setPassword(event.target.value)}
+					required
+				/>
+			</div>
+			<Turnstile onToken={setCaptchaToken} />
+			<Button type="submit" disabled={pending || !captchaToken}>
+				{pending ? "Signing in..." : "Sign in"}
+			</Button>
 				<p className="text-center text-sm text-muted-foreground">
 					Don&apos;t have an account?{" "}
 					<Link

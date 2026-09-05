@@ -2,7 +2,7 @@ import { env } from "cloudflare:workers";
 import { APIError, betterAuth } from "better-auth";
 import { createAuthMiddleware } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { admin, organization, twoFactor } from "better-auth/plugins";
+import { admin, captcha, organization, twoFactor } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { asc, eq } from "drizzle-orm";
 import { getDb } from "#/db";
@@ -168,6 +168,15 @@ function createAuth() {
 			},
 		},
 		plugins: [
+			// Turnstile on the public auth forms (/sign-in/email, /sign-up/email,
+			// /request-password-reset); token arrives in the x-captcha-response
+			// header. Test secret fallback keeps dev environments unblocked.
+			captcha({
+				provider: "cloudflare-turnstile",
+				secretKey:
+					env.TURNSTILE_SECRET_KEY ||
+					"1x0000000000000000000000000000000AA",
+			}),
 			admin(),
 			organization({
 				sendInvitationEmail: async ({ invitation, organization }) => {

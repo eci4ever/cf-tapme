@@ -2,6 +2,7 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { CalendarCheck, MailCheck } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { Turnstile } from "#/components/turnstile";
 import { Button } from "#/components/ui/button";
 import {
 	Card,
@@ -29,13 +30,21 @@ function ForgotPasswordPage() {
 	const [email, setEmail] = useState("");
 	const [pending, setPending] = useState(false);
 	const [sent, setSent] = useState(false);
+	const [captchaToken, setCaptchaToken] = useState<string | null>(null);
 
 	async function sendResetLink() {
+		if (!captchaToken) {
+			toast.error("Please complete the human verification first");
+			return;
+		}
 		setPending(true);
 
 		const { error } = await authClient.requestPasswordReset({
 			email,
 			redirectTo: "/reset-password",
+			fetchOptions: {
+				headers: { "x-captcha-response": captchaToken },
+			},
 		});
 
 		setPending(false);
@@ -105,7 +114,8 @@ function ForgotPasswordPage() {
 									required
 								/>
 							</div>
-							<Button type="submit" disabled={pending}>
+							<Turnstile onToken={setCaptchaToken} />
+							<Button type="submit" disabled={pending || !captchaToken}>
 								{pending ? "Sending..." : "Send reset link"}
 							</Button>
 							<p className="text-center text-sm text-muted-foreground">
