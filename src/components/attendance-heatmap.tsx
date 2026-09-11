@@ -38,8 +38,8 @@ const STATUS_CLASS: Record<string, string> = {
 	leave: "bg-emerald-500",
 	holiday: "bg-sky-400",
 	today: "border border-primary/40 bg-transparent",
-	off: "bg-muted/40",
-	empty: "bg-muted/50",
+	off: "bg-muted/60",
+	empty: "bg-muted/25",
 };
 
 const CLOCK_IN_LABEL: Record<string, string> = {
@@ -264,7 +264,7 @@ export function AttendanceHeatmap({ days }: { days: HeatDay[] }) {
 									<button
 										type="button"
 										aria-label={`${cell.date} — ${STATUS_LABEL[cell.status] ?? cell.status}`}
-										className={`size-3 cursor-pointer rounded-[3px] outline-none focus-visible:ring-2 focus-visible:ring-ring ${STATUS_CLASS[cell.status] ?? "bg-muted/50"}`}
+										className={`size-3 cursor-pointer rounded-[3px] outline-none focus-visible:ring-2 focus-visible:ring-ring ${STATUS_CLASS[cell.status] ?? "bg-muted/25"}`}
 									/>
 								</DayDetailPopover>
 							) : (

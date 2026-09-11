@@ -53,7 +53,17 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 				<script
 					dangerouslySetInnerHTML={{
-						__html: `(function(){try{var t=localStorage.getItem("tapme-theme");var d=t==="dark"||(t!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);if(d)document.documentElement.classList.add("dark");}catch(e){}})();`,
+						// Adds the theme class before first paint and keeps a single
+						// theme-color meta in sync with the resolved theme (system or
+						// toggled) so mobile browser chrome matches the background.
+						__html: `(function(){try{
+var d=localStorage.getItem("tapme-theme")==="dark"||(localStorage.getItem("tapme-theme")!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);
+if(d)document.documentElement.classList.add("dark");
+var m=document.createElement("meta");m.name="theme-color";document.head.appendChild(m);
+var sync=function(){m.content=document.documentElement.classList.contains("dark")?"#09090b":"#ffffff";};
+sync();
+new MutationObserver(sync).observe(document.documentElement,{attributes:true,attributeFilter:["class"]});
+}catch(e){}})();`,
 					}}
 				/>
 			</head>
