@@ -1,10 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router";
 import { Bell } from "lucide-react";
 import { Button } from "#/components/ui/button";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
+	DropdownMenuItem,
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "#/components/ui/dropdown-menu";
@@ -13,6 +14,7 @@ import {
 	markAllNotificationsRead,
 	markNotificationRead,
 } from "#/lib/auth.functions";
+import { formatDate } from "#/lib/dates";
 import { cn } from "#/lib/utils";
 
 function timeAgo(value: Date): string {
@@ -24,11 +26,10 @@ function timeAgo(value: Date): string {
 	if (hours < 24) return `${hours}h ago`;
 	const days = Math.floor(hours / 24);
 	if (days < 7) return `${days}d ago`;
-	return value.toLocaleDateString();
+	return formatDate(value);
 }
 
 export function NotificationBell() {
-	const navigate = useNavigate();
 	const queryClient = useQueryClient();
 	const { data } = useQuery({
 		queryKey: ["notifications"],
@@ -39,7 +40,7 @@ export function NotificationBell() {
 	const invalidate = () =>
 		queryClient.invalidateQueries({ queryKey: ["notifications"] });
 
-	const markRead = useMutation({
+	const markReadMutation = useMutation({
 		mutationFn: async (input: { id: string }) =>
 			markNotificationRead({ data: input }),
 		onSettled: invalidate,
@@ -52,14 +53,7 @@ export function NotificationBell() {
 	const items = data?.items ?? [];
 	const unread = data?.unread ?? 0;
 
-	const open = (item: { id: string; linkPath: string | null; readAt: Date | null }) => {
-		if (!item.readAt) {
-			markRead.mutate({ id: item.id });
-		}
-		if (item.linkPath) {
-			navigate({ to: item.linkPath });
-		}
-	};
+	const markRead = (id: string) => markReadMutation.mutate({ id });
 
 	return (
 		<DropdownMenu>
@@ -78,7 +72,10 @@ export function NotificationBell() {
 					) : null}
 				</Button>
 			</DropdownMenuTrigger>
-			<DropdownMenuContent align="end" className="w-96 max-w-[calc(100vw-2rem)]">
+			<DropdownMenuContent
+				align="end"
+				className="w-96 max-w-[calc(100vw-2rem)]"
+			>
 				<div className="flex items-center justify-between px-2 py-1.5">
 					<span className="text-sm font-semibold">Notifications</span>
 					{unread > 0 ? (
@@ -99,45 +96,79 @@ export function NotificationBell() {
 						No notifications yet.
 					</p>
 				) : (
-					<div className="max-h-96 overflow-y-auto">
-						{items.map((item) => (
-							<button
-								key={item.id}
-								type="button"
-								onClick={() => open(item)}
-								className={cn(
-									"flex w-full flex-col items-start gap-0.5 rounded-sm px-2 py-2 text-left outline-none hover:bg-accent focus:bg-accent",
-									!item.readAt && "bg-accent/50",
-								)}
-							>
-								<span className="flex w-full items-start gap-2">
-									{!item.readAt ? (
-										<span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
-									) : (
-										<span className="mt-1.5 h-2 w-2 shrink-0" />
-									)}
-									<span
-										className={cn(
-											"text-sm",
-											!item.readAt && "font-medium",
-										)}
+					<div className="max-h-96 overflow-y-auto overscroll-contain">
+						{items.map((item) => {
+							const markThisRead = () => {
+								if (!item.readAt) {
+									markRead(item.id);
+								}
+							};
+							const rowClassName = cn(
+								"flex w-full flex-col items-start gap-0.5 rounded-sm px-2 py-2 text-left",
+								!item.readAt && "bg-accent/50",
+							);
+							return item.linkPath ? (
+								<DropdownMenuItem asChild key={item.id} className="gap-0">
+									<Link
+										to={item.linkPath}
+										onClick={markThisRead}
+										className={cn(rowClassName, "cursor-pointer")}
 									>
-										{item.title}
-									</span>
-								</span>
-								{item.body ? (
-									<span className="pl-4 text-xs text-muted-foreground">
-										{item.body}
-									</span>
-								) : null}
-								<span className="pl-4 text-[11px] text-muted-foreground/70">
-									{timeAgo(new Date(item.createdAt))}
-								</span>
-							</button>
-						))}
+										<RowContent item={item} />
+									</Link>
+								</DropdownMenuItem>
+							) : (
+								<DropdownMenuItem
+									key={item.id}
+									onSelect={markThisRead}
+									className={cn(rowClassName, "gap-0")}
+								>
+									<RowContent item={item} />
+								</DropdownMenuItem>
+							);
+						})}
 					</div>
 				)}
 			</DropdownMenuContent>
 		</DropdownMenu>
+	);
+}
+
+function RowContent({
+	item,
+}: {
+	item: {
+		title: string;
+		body: string | null;
+		readAt: Date | null;
+		createdAt: Date | string;
+	};
+}) {
+	return (
+		<>
+			<span className="flex w-full min-w-0 items-start gap-2">
+				{!item.readAt ? (
+					<span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
+				) : (
+					<span className="mt-1.5 h-2 w-2 shrink-0" />
+				)}
+				<span
+					className={cn(
+						"min-w-0 truncate text-sm",
+						!item.readAt && "font-medium",
+					)}
+				>
+					{item.title}
+				</span>
+			</span>
+			{item.body ? (
+				<span className="line-clamp-2 break-words pl-4 text-xs text-muted-foreground">
+					{item.body}
+				</span>
+			) : null}
+			<span className="pl-4 text-[11px] text-muted-foreground/70">
+				{timeAgo(new Date(item.createdAt))}
+			</span>
+		</>
 	);
 }
