@@ -231,7 +231,7 @@ function UsersAdminPage() {
 					<div>
 						<Badge variant="destructive">Banned</Badge>
 						{row.original.banReason ? (
-							<p className="mt-1 text-xs text-muted-foreground">
+							<p className="mt-1 text-xs break-words text-muted-foreground">
 								{row.original.banReason}
 								{row.original.banExpires
 									? ` · until ${new Date(row.original.banExpires).toLocaleDateString()}`

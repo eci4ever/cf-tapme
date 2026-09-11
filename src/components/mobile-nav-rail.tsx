@@ -33,7 +33,7 @@ export function MobileNavRail() {
 			data-sidebar="sidebar"
 			data-state="collapsed"
 			data-collapsible="icon"
-			className="group fixed inset-y-0 left-0 z-30 flex w-12 flex-col border-r bg-sidebar pb-[calc(0.75rem+env(safe-area-inset-bottom))] text-sidebar-foreground md:hidden [&_[data-sidebar=menu-button]]:size-10!"
+			className="group fixed inset-y-0 left-0 z-30 flex w-12 flex-col border-r bg-sidebar pb-[calc(0.75rem+env(safe-area-inset-bottom))] pl-[env(safe-area-inset-left)] text-sidebar-foreground md:hidden [&_[data-sidebar=menu-button]]:size-10!"
 		>
 			<SidebarHeader className="pt-3">
 				<OrgSwitcher />

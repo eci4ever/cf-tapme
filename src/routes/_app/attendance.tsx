@@ -551,10 +551,14 @@ function AllAttendanceTab() {
 										onClick={() => setEditTarget(row)}
 									>
 										<TableCell className="sticky left-0 z-10 bg-card [tr:hover_&]:bg-muted/50">
-											<span className="font-medium">{row.employee.name}</span>
-											<span className="ml-2 text-xs text-muted-foreground">
-												{row.employee.employeeNo}
-											</span>
+											<div className="flex min-w-0 items-baseline gap-2">
+												<span className="max-w-40 truncate font-medium">
+													{row.employee.name}
+												</span>
+												<span className="shrink-0 text-xs text-muted-foreground">
+													{row.employee.employeeNo}
+												</span>
+											</div>
 										</TableCell>
 										<TableCell>
 											<Badge variant="secondary">{row.employee.shift}</Badge>
@@ -866,16 +870,20 @@ function IssueReviewCard() {
 							{pending.map((issue) => (
 								<TableRow key={issue.id}>
 									<TableCell className="sticky left-0 z-10 bg-card [tr:hover_&]:bg-muted/50">
-										{issue.employeeName}
-										<span className="ml-2 text-xs text-muted-foreground">
-											{issue.employeeNo}
-										</span>
+										<div className="flex min-w-0 items-baseline gap-2">
+											<span className="max-w-40 truncate font-medium">
+												{issue.employeeName}
+											</span>
+											<span className="shrink-0 text-xs text-muted-foreground">
+												{issue.employeeNo}
+											</span>
+										</div>
 									</TableCell>
 									<TableCell>{issue.date}</TableCell>
 									<TableCell>
 										<IssueTypeBadge type={issue.type} />
 									</TableCell>
-									<TableCell className="max-w-64 text-sm">
+									<TableCell className="max-w-64 truncate text-sm">
 										{issue.justification ?? "—"}
 									</TableCell>
 									<TableCell>
@@ -926,16 +934,20 @@ function IssueReviewCard() {
 									{decided.map((issue) => (
 										<TableRow key={issue.id}>
 											<TableCell className="sticky left-0 z-10 bg-card [tr:hover_&]:bg-muted/50">
-												{issue.employeeName}
-												<span className="ml-2 text-xs text-muted-foreground">
-													{issue.employeeNo}
-												</span>
+												<div className="flex min-w-0 items-baseline gap-2">
+													<span className="max-w-40 truncate font-medium">
+														{issue.employeeName}
+													</span>
+													<span className="shrink-0 text-xs text-muted-foreground">
+														{issue.employeeNo}
+													</span>
+												</div>
 											</TableCell>
 											<TableCell>{issue.date}</TableCell>
 											<TableCell>
 												<IssueTypeBadge type={issue.type} />
 											</TableCell>
-											<TableCell className="max-w-64 text-sm">
+											<TableCell className="max-w-64 truncate text-sm">
 												{issue.justification ?? "—"}
 												{issue.reviewNote ? (
 													<span className="block text-xs text-muted-foreground">
@@ -1101,13 +1113,13 @@ function MyIssuesCard() {
 										<TableCell>
 											<IssueTypeBadge type={issue.type} />
 										</TableCell>
-										<TableCell className="max-w-64 text-sm">
+										<TableCell className="max-w-64 truncate text-sm">
 											{issue.justification ?? "—"}
 										</TableCell>
 										<TableCell>
 											<IssueStatusBadge status={issue.status} />
 										</TableCell>
-										<TableCell className="max-w-64 text-sm">
+										<TableCell className="max-w-64 truncate text-sm">
 											{issue.status === "rejected" && issue.reviewNote
 												? issue.reviewNote
 												: "—"}

@@ -296,10 +296,10 @@ function OrgDetailPage() {
 							<TableBody>
 								{members.map((entry) => (
 									<TableRow key={entry.userId}>
-										<TableCell className="font-medium">
+										<TableCell className="max-w-48 truncate font-medium">
 											{entry.name}
 										</TableCell>
-										<TableCell>{entry.email}</TableCell>
+										<TableCell className="max-w-56 truncate">{entry.email}</TableCell>
 										<TableCell>
 											<RoleBadge role={entry.role} />
 										</TableCell>
@@ -338,7 +338,7 @@ function OrgDetailPage() {
 									{employees.map((employee) => (
 										<TableRow key={employee.id}>
 											<TableCell>{employee.employeeNo}</TableCell>
-											<TableCell className="font-medium">
+											<TableCell className="max-w-48 truncate font-medium">
 												{employee.name}
 											</TableCell>
 											<TableCell>{employee.position ?? "—"}</TableCell>

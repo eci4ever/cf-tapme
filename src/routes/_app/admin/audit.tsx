@@ -169,7 +169,7 @@ function AdminAuditPage() {
 											</span>
 										</TableCell>
 										<TableCell>{log.targetName ?? "—"}</TableCell>
-										<TableCell className="max-w-72 text-sm text-muted-foreground">
+										<TableCell className="max-w-72 break-words text-sm text-muted-foreground">
 											{log.detail ?? "—"}
 										</TableCell>
 									</TableRow>
