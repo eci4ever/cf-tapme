@@ -127,7 +127,7 @@ function ResetPasswordPage() {
 								/>
 							</div>
 							<Button type="submit" disabled={pending}>
-								{pending ? "Updating..." : "Update password"}
+								{pending ? "Updating…" : "Update password"}
 							</Button>
 						</form>
 					)}

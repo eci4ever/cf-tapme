@@ -167,7 +167,7 @@ export function OrgSwitcher() {
 									</div>
 									<DialogFooter>
 										<Button type="submit" disabled={pending}>
-											{pending ? "Creating..." : "Create"}
+											{pending ? "Creating…" : "Create"}
 										</Button>
 									</DialogFooter>
 								</form>

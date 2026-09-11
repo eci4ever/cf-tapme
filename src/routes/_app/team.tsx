@@ -272,7 +272,7 @@ function TeamPage() {
 						</div>
 						<Button type="submit" disabled={inviteMutation.isPending}>
 							<Send />
-							{inviteMutation.isPending ? "Sending..." : "Send invite"}
+							{inviteMutation.isPending ? "Sending…" : "Send invite"}
 						</Button>
 					</form>
 				</CardContent>

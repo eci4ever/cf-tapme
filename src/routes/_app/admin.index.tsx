@@ -215,7 +215,9 @@ function MetricsRow({ stats }: { stats: PlatformStats }) {
 						<CardDescription>{item.label}</CardDescription>
 					</CardHeader>
 					<CardContent>
-						<CardTitle className="text-2xl">{item.value}</CardTitle>
+						<CardTitle className="text-2xl tabular-nums">
+							{item.value}
+						</CardTitle>
 					</CardContent>
 				</Card>
 			))}

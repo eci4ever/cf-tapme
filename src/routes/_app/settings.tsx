@@ -360,7 +360,7 @@ function ScheduleCard({
 						disabled={scheduleMutation.isPending}
 						className="w-fit"
 					>
-						{scheduleMutation.isPending ? "Saving..." : "Save schedule"}
+						{scheduleMutation.isPending ? "Saving…" : "Save schedule"}
 					</Button>
 				</form>
 				<AlertDialog open={warnOpen} onOpenChange={setWarnOpen}>
@@ -377,7 +377,7 @@ function ScheduleCard({
 						<AlertDialogFooter>
 							<AlertDialogCancel>Cancel</AlertDialogCancel>
 							<AlertDialogAction onClick={handleProceed}>
-								{scheduleMutation.isPending ? "Applying..." : "Apply schedule"}
+								{scheduleMutation.isPending ? "Applying…" : "Apply schedule"}
 							</AlertDialogAction>
 						</AlertDialogFooter>
 					</AlertDialogContent>
@@ -488,7 +488,7 @@ function HolidaysCard({
 						variant="outline"
 						disabled={addMutation.isPending}
 					>
-						{addMutation.isPending ? "Adding..." : "Add holiday"}
+						{addMutation.isPending ? "Adding…" : "Add holiday"}
 					</Button>
 					<ImportHolidaysDialog
 						existingDates={new Set(holidays.map((holiday) => holiday.date))}
@@ -727,7 +727,7 @@ function ImportHolidaysDialog({
 							onClick={() => weekendMutation.mutate()}
 						>
 							{weekendMutation.isPending
-								? "Updating..."
+								? "Updating…"
 								: "Set work days to match"}
 						</Button>
 					</div>
@@ -781,7 +781,7 @@ function ImportHolidaysDialog({
 						onClick={() => importMutation.mutate()}
 					>
 						{importMutation.isPending
-							? "Importing..."
+							? "Importing…"
 							: `Import ${selected.size} selected`}
 					</Button>
 				</DialogFooter>
@@ -939,7 +939,7 @@ function GeneralCard({
 						disabled={nameMutation.isPending}
 						className="w-fit"
 					>
-						{nameMutation.isPending ? "Saving..." : "Save changes"}
+						{nameMutation.isPending ? "Saving…" : "Save changes"}
 					</Button>
 				</form>
 			</CardContent>
@@ -1046,7 +1046,7 @@ function TransferOwnershipCard({
 										disabled={transferMutation.isPending}
 									>
 										{transferMutation.isPending
-											? "Transferring..."
+											? "Transferring…"
 											: "Transfer"}
 									</Button>
 								</AlertDialogAction>
@@ -1150,7 +1150,7 @@ function DangerZoneCard({
 									onClick={handleDelete}
 								>
 									{deleteMutation.isPending
-										? "Deleting..."
+										? "Deleting…"
 										: "Delete permanently"}
 								</Button>
 							</AlertDialogAction>
@@ -1414,7 +1414,7 @@ function SiteEditor({ site, onSaved }: { site: SiteRow; onSaved: () => void }) {
 						})
 					}
 				>
-					{saveMutation.isPending ? "Saving..." : "Save"}
+					{saveMutation.isPending ? "Saving…" : "Save"}
 				</Button>
 				<Button
 					type="button"

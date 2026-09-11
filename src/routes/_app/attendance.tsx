@@ -772,7 +772,7 @@ function AttendanceEntryDialog({
 					</div>
 					<DialogFooter>
 						<Button type="submit" disabled={upsertMutation.isPending}>
-							{upsertMutation.isPending ? "Saving..." : "Save attendance"}
+							{upsertMutation.isPending ? "Saving…" : "Save attendance"}
 						</Button>
 					</DialogFooter>
 				</form>

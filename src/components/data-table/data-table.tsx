@@ -83,7 +83,7 @@ export function DataTablePagination<TData>({
 	const rows = totalRows ?? table.getFilteredRowModel().rows.length;
 	return (
 		<div className="flex items-center justify-between">
-			<p className="text-sm text-muted-foreground">
+			<p className="text-sm tabular-nums text-muted-foreground">
 				{rows} row{rows === 1 ? "" : "s"}
 			</p>
 			<div className="flex items-center gap-2">
@@ -96,7 +96,7 @@ export function DataTablePagination<TData>({
 					<ChevronLeft />
 					Previous
 				</Button>
-				<span className="text-sm text-muted-foreground">
+				<span className="text-sm tabular-nums text-muted-foreground">
 					Page {pageIndex + 1} of {Math.max(pageCount, 1)}
 				</span>
 				<Button

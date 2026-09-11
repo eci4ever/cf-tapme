@@ -107,7 +107,7 @@ function BillingPage() {
 						<Wallet className="size-4 text-muted-foreground" />
 					</CardHeader>
 					<CardContent>
-						<CardTitle className="text-3xl">
+						<CardTitle className="text-3xl tabular-nums">
 							{formatRm(state.balanceSen)}
 						</CardTitle>
 						<p className="mt-1 text-xs text-muted-foreground">
@@ -214,7 +214,9 @@ function BillingPage() {
 												{formatRm(Math.abs(entry.amountSen))}
 											</span>
 										</TableCell>
-										<TableCell>{formatRm(entry.balanceAfterSen)}</TableCell>
+										<TableCell className="tabular-nums">
+											{formatRm(entry.balanceAfterSen)}
+										</TableCell>
 										<TableCell className="max-w-48 truncate text-muted-foreground">
 											{entry.note ?? "—"}
 										</TableCell>

@@ -115,7 +115,7 @@ function LoginPage() {
 						/>
 					</div>
 					<Button type="submit" disabled={pending}>
-						{pending ? "Verifying..." : "Verify"}
+						{pending ? "Verifying…" : "Verify"}
 					</Button>
 					<Button
 						type="button"
@@ -174,7 +174,7 @@ function LoginPage() {
 				</div>
 				<Turnstile onToken={setCaptchaToken} />
 				<Button type="submit" disabled={pending || !captchaToken}>
-					{pending ? "Signing in..." : "Sign in"}
+					{pending ? "Signing in…" : "Sign in"}
 				</Button>
 				<p className="text-center text-sm text-muted-foreground">
 					Don&apos;t have an account?{" "}

@@ -221,7 +221,7 @@ function ProfileTab({
 							disabled={updateMutation.isPending}
 							className="w-fit"
 						>
-							{updateMutation.isPending ? "Saving..." : "Save changes"}
+							{updateMutation.isPending ? "Saving…" : "Save changes"}
 						</Button>
 					</form>
 				</CardContent>
@@ -252,7 +252,7 @@ function ProfileTab({
 					<div className="flex shrink-0 gap-2">
 						{!emailVerified ? (
 							<Button variant="outline" onClick={handleVerifyEmail}>
-								{verifyEmailMutation.isPending ? "Sending..." : "Verify email"}
+								{verifyEmailMutation.isPending ? "Sending…" : "Verify email"}
 							</Button>
 						) : null}
 						<Button variant="outline" onClick={() => setChangeEmailOpen(true)}>
@@ -295,7 +295,7 @@ function ProfileTab({
 						<DialogFooter>
 							<Button type="submit" disabled={changeEmailMutation.isPending}>
 								{changeEmailMutation.isPending
-									? "Sending..."
+									? "Sending…"
 									: "Send confirmation"}
 							</Button>
 						</DialogFooter>
@@ -435,7 +435,7 @@ function ChangePasswordCard() {
 						disabled={changePwdMutation.isPending}
 						className="w-fit"
 					>
-						{changePwdMutation.isPending ? "Updating..." : "Update password"}
+						{changePwdMutation.isPending ? "Updating…" : "Update password"}
 					</Button>
 				</form>
 			</CardContent>
@@ -629,7 +629,7 @@ function TwoFactorCard({
 										</div>
 										<DialogFooter>
 											<Button type="submit" disabled={pending}>
-												{pending ? "Generating..." : "Generate"}
+												{pending ? "Generating…" : "Generate"}
 											</Button>
 										</DialogFooter>
 									</form>
@@ -677,7 +677,7 @@ function TwoFactorCard({
 												variant="destructive"
 												disabled={pending}
 											>
-												{pending ? "Disabling..." : "Disable 2FA"}
+												{pending ? "Disabling…" : "Disable 2FA"}
 											</Button>
 										</DialogFooter>
 									</form>
@@ -738,7 +738,7 @@ function TwoFactorCard({
 							/>
 						</div>
 						<Button type="submit" disabled={pending} className="w-fit">
-							{pending ? "Verifying..." : "Verify and enable"}
+							{pending ? "Verifying…" : "Verify and enable"}
 						</Button>
 					</form>
 				</CardContent>
@@ -773,7 +773,7 @@ function TwoFactorCard({
 						/>
 					</div>
 					<Button type="submit" disabled={pending} className="w-fit">
-						{pending ? "Setting up..." : "Enable 2FA"}
+						{pending ? "Setting up…" : "Enable 2FA"}
 					</Button>
 				</form>
 			</CardContent>

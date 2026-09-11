@@ -149,7 +149,11 @@ function OrganizationsAdminPage() {
 			header: ({ column }) => (
 				<SortableHeader column={column} title="Balance" />
 			),
-			cell: ({ row }) => formatRm(row.original.balanceSen),
+			cell: ({ row }) => (
+				<span className="tabular-nums">
+					{formatRm(row.original.balanceSen)}
+				</span>
+			),
 		},
 		{
 			accessorKey: "memberCount",

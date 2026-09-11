@@ -324,7 +324,9 @@ function OrgDetailPage() {
 												{entry.amountSen > 0 ? "+" : ""}
 												{formatRm(entry.amountSen)}
 											</TableCell>
-											<TableCell>{formatRm(entry.balanceAfterSen)}</TableCell>
+											<TableCell className="tabular-nums">
+												{formatRm(entry.balanceAfterSen)}
+											</TableCell>
 											<TableCell className="max-w-48 truncate">
 												{entry.note ?? "—"}
 											</TableCell>

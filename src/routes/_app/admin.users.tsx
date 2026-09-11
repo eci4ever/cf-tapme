@@ -530,7 +530,7 @@ function BanDialog({
 						<AlertDialogCancel>Cancel</AlertDialogCancel>
 						<AlertDialogAction asChild>
 							<Button type="submit" variant="destructive" disabled={pending}>
-								{pending ? "Banning..." : "Ban user"}
+								{pending ? "Banning…" : "Ban user"}
 							</Button>
 						</AlertDialogAction>
 					</AlertDialogFooter>

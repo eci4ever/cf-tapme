@@ -195,7 +195,7 @@ function OnboardingPage() {
 											disabled={acceptingId !== null}
 											onClick={() => handleAccept(invitation)}
 										>
-											{acceptingId === invitation.id ? "Joining..." : "Accept"}
+											{acceptingId === invitation.id ? "Joining…" : "Accept"}
 										</Button>
 										<AlertDialog>
 											<AlertDialogTrigger asChild>
@@ -260,7 +260,7 @@ function OnboardingPage() {
 								/>
 							</div>
 							<Button type="submit" disabled={createPending}>
-								{createPending ? "Creating..." : "Create company"}
+								{createPending ? "Creating…" : "Create company"}
 							</Button>
 						</form>
 					</CardContent>

@@ -92,7 +92,7 @@ function ForgotPasswordPage() {
 								disabled={pending}
 								className="w-fit"
 							>
-								{pending ? "Sending..." : "Resend email"}
+								{pending ? "Sending…" : "Resend email"}
 							</Button>
 							<Link
 								to="/login"
@@ -119,7 +119,7 @@ function ForgotPasswordPage() {
 							</div>
 							<Turnstile onToken={setCaptchaToken} />
 							<Button type="submit" disabled={pending || !captchaToken}>
-								{pending ? "Sending..." : "Send reset link"}
+								{pending ? "Sending…" : "Send reset link"}
 							</Button>
 							<p className="text-center text-sm text-muted-foreground">
 								Remembered your password?{" "}

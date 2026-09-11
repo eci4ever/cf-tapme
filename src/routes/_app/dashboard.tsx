@@ -121,7 +121,7 @@ function DashboardPage() {
 						<SecurityRow
 							icon={MailCheck}
 							label="Email address"
-							value={user?.email ?? "Loading..."}
+							value={user?.email ?? "Loading…"}
 							positive={user?.emailVerified ?? false}
 							positiveLabel="Verified"
 							reviewLabel="Unverified"

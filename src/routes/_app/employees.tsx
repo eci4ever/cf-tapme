@@ -648,7 +648,7 @@ function ImportCsvDialog({
 							onClick={() => mutation.mutate()}
 						>
 							{mutation.isPending
-								? "Importing..."
+								? "Importing…"
 								: `Import ${preview?.total ?? 0} rows`}
 						</Button>
 					) : null}
@@ -850,7 +850,7 @@ function ScheduleDialog({
 						disabled={mutation.isPending}
 						onClick={() => mutation.mutate()}
 					>
-						{mutation.isPending ? "Saving..." : "Save schedule"}
+						{mutation.isPending ? "Saving…" : "Save schedule"}
 					</Button>
 				</DialogFooter>
 			</DialogContent>
@@ -1272,7 +1272,7 @@ function EmployeeFormDialog({
 					<DialogFooter>
 						<Button type="submit" disabled={saveMutation.isPending}>
 							{saveMutation.isPending
-								? "Saving..."
+								? "Saving…"
 								: editing
 									? "Save changes"
 									: "Add employee"}

@@ -114,7 +114,7 @@ function SignupPage() {
 				</div>
 				<Turnstile onToken={setCaptchaToken} />
 				<Button type="submit" disabled={pending || !captchaToken}>
-					{pending ? "Creating account..." : "Create account"}
+					{pending ? "Creating account…" : "Create account"}
 				</Button>
 				<p className="text-center text-xs text-muted-foreground">
 					Free for up to 5 employees · No credit card required
