@@ -38,6 +38,7 @@ import {
 	TableRow,
 } from "#/components/ui/table";
 import { authClient } from "#/lib/auth-client";
+import { formatDate } from "#/lib/dates";
 import {
 	getMyOrgRole,
 	listOrgInvitations,
@@ -266,7 +267,7 @@ function TeamPage() {
 											</div>
 										</TableCell>
 										<TableCell>
-											{new Date(member.joinedAt).toLocaleDateString()}
+											{formatDate(new Date(member.joinedAt))}
 										</TableCell>
 										<TableCell>
 											{member.role === "owner" ? null : (
@@ -361,7 +362,7 @@ function TeamPage() {
 											</Badge>
 										</TableCell>
 										<TableCell>
-											{new Date(invitation.expiresAt).toLocaleDateString()}
+											{formatDate(new Date(invitation.expiresAt))}
 										</TableCell>
 										<TableCell>
 											<Button

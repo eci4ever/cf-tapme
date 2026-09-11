@@ -42,10 +42,11 @@ import {
 	getBillingOverview,
 	getPaymentInstructions,
 	listMyTopupRequests,
+	requestTopup,
 	type SubscriptionState,
 	subscribePlan,
-	requestTopup,
 } from "#/lib/billing.functions";
+import { formatDate } from "#/lib/dates";
 import { getMyOrgRole } from "#/lib/org.functions";
 import {
 	formatRm,
@@ -123,7 +124,7 @@ function BillingPage() {
 					</CardHeader>
 					<CardContent>
 						<CardTitle className="text-3xl">
-							{state.paidUntil ? state.paidUntil.toLocaleDateString() : "—"}
+							{state.paidUntil ? formatDate(state.paidUntil) : "—"}
 						</CardTitle>
 						<p className="mt-1 text-xs text-muted-foreground">
 							{state.plan === "free" ? "Free plan — no expiry" : "Paid until"}
@@ -188,7 +189,7 @@ function BillingPage() {
 								{ledger.map((entry) => (
 									<TableRow key={entry.id}>
 										<TableCell>
-											{new Date(entry.createdAt).toLocaleDateString()}
+											{formatDate(new Date(entry.createdAt))}
 										</TableCell>
 										<TableCell>
 											<Badge
@@ -435,7 +436,9 @@ function RequestTopupButton() {
 								{instructions.bankAccount ? (
 									<p>
 										<span className="text-muted-foreground">Account no: </span>
-										<span className="font-mono">{instructions.bankAccount}</span>
+										<span className="font-mono">
+											{instructions.bankAccount}
+										</span>
 									</p>
 								) : null}
 								{instructions.accountHolder ? (
@@ -519,8 +522,7 @@ function PaymentInstructionsCard() {
 				<RequestTopupButton />
 			</CardHeader>
 			<CardContent className="text-sm">
-				{instructions &&
-				(instructions.bankAccount || instructions.bankName) ? (
+				{instructions && (instructions.bankAccount || instructions.bankName) ? (
 					<div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
 						<div className="grid gap-1">
 							{instructions.bankName ? (
@@ -607,7 +609,7 @@ function TopupRequestsCard() {
 							{requests.map((request) => (
 								<TableRow key={request.id}>
 									<TableCell>
-										{new Date(request.createdAt).toLocaleDateString()}
+										{formatDate(new Date(request.createdAt))}
 									</TableCell>
 									<TableCell>{formatRm(request.amountSen)}</TableCell>
 									<TableCell>{request.paymentRef}</TableCell>

@@ -11,8 +11,8 @@ import {
 	UserCheck,
 	Users,
 } from "lucide-react";
-import { toast } from "sonner";
 import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
@@ -39,7 +39,11 @@ import {
 	getTodayAttendance,
 } from "#/lib/attendance.functions";
 import { authClient } from "#/lib/auth-client";
-import { getOrgAttendanceTrend, getOrgDashboardStats } from "#/lib/dashboard.functions";
+import {
+	getOrgAttendanceTrend,
+	getOrgDashboardStats,
+} from "#/lib/dashboard.functions";
+import { formatDate, formatTime } from "#/lib/dates";
 import { getPosition } from "#/lib/geolocation";
 import { getLeaveOverview } from "#/lib/leave.functions";
 import { formatMinutes } from "#/lib/schedule";
@@ -393,9 +397,7 @@ function ClockWidget({
 		if (action === "in") {
 			const threshold =
 				data.schedule.workStartMinutes +
-				(data.employee?.shift === "flexi"
-					? 0
-					: data.schedule.graceMinutes);
+				(data.employee?.shift === "flexi" ? 0 : data.schedule.graceMinutes);
 			if (minutesSinceMidnight(data.schedule.timezone) > threshold) {
 				reasons.push("you are clocking in late");
 			}
@@ -483,7 +485,7 @@ function ClockWidget({
 		<Card>
 			<CardHeader>
 				<CardTitle>
-					Today — {new Date(`${today.today}T00:00:00`).toLocaleDateString()}
+					Today — {formatDate(new Date(`${today.today}T00:00:00`))}
 				</CardTitle>
 				<CardDescription>
 					{employee.name} · {employee.shift} shift · work hours{" "}
@@ -498,7 +500,7 @@ function ClockWidget({
 							<div>
 								<p className="text-xs text-muted-foreground">Clock in</p>
 								<p className="flex items-center gap-2 text-lg font-semibold">
-									{new Date(record.clockIn).toLocaleTimeString()}
+									{formatTime(new Date(record.clockIn))}
 									<ClockInBadge status={record.clockInStatus} />
 								</p>
 							</div>
@@ -506,7 +508,7 @@ function ClockWidget({
 								<p className="text-xs text-muted-foreground">Clock out</p>
 								<p className="flex items-center gap-2 text-lg font-semibold">
 									{record.clockOut
-										? new Date(record.clockOut).toLocaleTimeString()
+										? formatTime(new Date(record.clockOut))
 										: "—"}
 									{record.clockOutStatus ? (
 										<ClockOutBadge status={record.clockOutStatus} />
@@ -515,7 +517,7 @@ function ClockWidget({
 							</div>
 							{isClockedIn && today.targetClockOut ? (
 								<p className="text-sm text-muted-foreground">
-									Target clock out: {today.targetClockOut.toLocaleTimeString()}
+									Target clock out: {formatTime(today.targetClockOut)}
 								</p>
 							) : null}
 						</>
@@ -754,7 +756,9 @@ function SummaryCard({
 }) {
 	const body = (
 		<Card
-			className={to ? "h-full transition-colors hover:border-primary/40" : "h-full"}
+			className={
+				to ? "h-full transition-colors hover:border-primary/40" : "h-full"
+			}
 		>
 			<CardContent className="flex h-full flex-col gap-2 pt-4">
 				<div className="flex items-center justify-between gap-2">
@@ -764,9 +768,7 @@ function SummaryCard({
 					</span>
 				</div>
 				<CardTitle className="text-3xl tabular-nums">{value}</CardTitle>
-				<p className="mt-auto text-xs text-muted-foreground">
-					{detail ?? ""}
-				</p>
+				<p className="mt-auto text-xs text-muted-foreground">{detail ?? ""}</p>
 			</CardContent>
 		</Card>
 	);

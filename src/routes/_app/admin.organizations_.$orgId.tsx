@@ -30,11 +30,9 @@ import {
 	TableHeader,
 	TableRow,
 } from "#/components/ui/table";
-import {
-	getOrgAdminDetail,
-	listOrgLedger,
-} from "#/lib/admin.functions";
+import { getOrgAdminDetail, listOrgLedger } from "#/lib/admin.functions";
 import { adminAdjustCredit } from "#/lib/billing.functions";
+import { formatDate } from "#/lib/dates";
 import { formatRm, parseRmToSen } from "#/lib/subscription";
 
 export const Route = createFileRoute("/_app/admin/organizations_/$orgId")({
@@ -103,7 +101,11 @@ function OrgDetailPage() {
 				<CardContent className="py-10 text-center">
 					<p className="text-sm text-muted-foreground">
 						Organization not found.{" "}
-						<Button variant="link" className="px-0" onClick={() => detailQuery.refetch()}>
+						<Button
+							variant="link"
+							className="px-0"
+							onClick={() => detailQuery.refetch()}
+						>
 							Retry
 						</Button>
 					</p>
@@ -122,18 +124,15 @@ function OrgDetailPage() {
 					<CardTitle className="flex flex-wrap items-center gap-2">
 						{org.name}
 						<Badge variant="outline">{org.plan}</Badge>
-						<Badge
-							variant={status === "grace" ? "destructive" : "secondary"}
-						>
+						<Badge variant={status === "grace" ? "destructive" : "secondary"}>
 							{status}
 						</Badge>
 					</CardTitle>
 					<CardDescription>
-						Paid until{" "}
-						{org.paidUntil ? org.paidUntil.toLocaleDateString() : "—"} ·
-						created {org.createdAt.toLocaleDateString()} ·{" "}
-						{members.length} member{members.length === 1 ? "" : "s"} ·{" "}
-						{activeEmployees.length} active employee
+						Paid until {org.paidUntil ? formatDate(org.paidUntil) : "—"} ·
+						created {formatDate(org.createdAt)} · {members.length} member
+						{members.length === 1 ? "" : "s"} · {activeEmployees.length} active
+						employee
 						{activeEmployees.length === 1 ? "" : "s"}
 					</CardDescription>
 				</CardHeader>
@@ -252,9 +251,7 @@ function OrgDetailPage() {
 								<TableBody>
 									{(ledgerQuery.data ?? []).map((entry) => (
 										<TableRow key={entry.id}>
-											<TableCell>
-												{entry.createdAt.toLocaleDateString()}
-											</TableCell>
+											<TableCell>{formatDate(entry.createdAt)}</TableCell>
 											<TableCell>{entry.type}</TableCell>
 											<TableCell
 												className={
@@ -299,11 +296,13 @@ function OrgDetailPage() {
 										<TableCell className="max-w-48 truncate font-medium">
 											{entry.name}
 										</TableCell>
-										<TableCell className="max-w-56 truncate">{entry.email}</TableCell>
+										<TableCell className="max-w-56 truncate">
+											{entry.email}
+										</TableCell>
 										<TableCell>
 											<RoleBadge role={entry.role} />
 										</TableCell>
-										<TableCell>{entry.joinedAt.toLocaleDateString()}</TableCell>
+										<TableCell>{formatDate(entry.joinedAt)}</TableCell>
 									</TableRow>
 								))}
 							</TableBody>
@@ -345,7 +344,9 @@ function OrgDetailPage() {
 											<TableCell>{employee.supervisorName ?? "—"}</TableCell>
 											<TableCell>
 												<Badge
-													variant={employee.isActive ? "outline" : "destructive"}
+													variant={
+														employee.isActive ? "outline" : "destructive"
+													}
 												>
 													{employee.isActive ? "Active" : "Inactive"}
 												</Badge>

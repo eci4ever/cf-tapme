@@ -2,6 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import type { ColumnDef } from "@tanstack/react-table";
 import { getCoreRowModel, useReactTable } from "@tanstack/react-table";
+import { jsPDF } from "jspdf";
+import autoTable from "jspdf-autotable";
 import {
 	ChevronLeft,
 	ChevronRight,
@@ -9,8 +11,6 @@ import {
 	FileSpreadsheet,
 } from "lucide-react";
 import { useMemo, useState } from "react";
-import { jsPDF } from "jspdf";
-import autoTable from "jspdf-autotable";
 import { DataTable } from "#/components/data-table/data-table";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
@@ -29,6 +29,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
+import { formatDate } from "#/lib/dates";
 import { getMonthlyReport } from "#/lib/reports.functions";
 
 export const Route = createFileRoute("/_app/reports")({
@@ -87,8 +88,14 @@ type Cursor = { year: number; month: number };
 const DAILY_STATUS: Record<string, { label: string; className: string }> = {
 	present: { label: "Present", className: "" },
 	late: { label: "Late", className: "text-amber-600 dark:text-amber-400" },
-	leave: { label: "On leave", className: "text-emerald-600 dark:text-emerald-400" },
-	holiday: { label: "Public holiday", className: "text-sky-600 dark:text-sky-400" },
+	leave: {
+		label: "On leave",
+		className: "text-emerald-600 dark:text-emerald-400",
+	},
+	holiday: {
+		label: "Public holiday",
+		className: "text-sky-600 dark:text-sky-400",
+	},
 	off: { label: "Rest day", className: "text-muted-foreground" },
 	absent: { label: "Absent", className: "text-destructive" },
 	today: { label: "Not clocked in", className: "text-muted-foreground" },
@@ -349,8 +356,10 @@ function ReportsPage() {
 		doc.text(`${data.orgName} — Monthly Attendance Report`, 40, 40);
 		doc.setFontSize(10);
 		doc.text(
-			`${monthLabel(cursor)} · balance year ${data.balanceYear} · generated ${new Date().toLocaleDateString()}` +
-				(selectedEmployee ? ` · ${selectedEmployee.name} (${selectedEmployee.employeeNo})` : ""),
+			`${monthLabel(cursor)} · balance year ${data.balanceYear} · generated ${formatDate(new Date())}` +
+				(selectedEmployee
+					? ` · ${selectedEmployee.name} (${selectedEmployee.employeeNo})`
+					: ""),
 			40,
 			56,
 		);
@@ -469,7 +478,9 @@ function ReportsPage() {
 		const suffix = selectedEmployee
 			? `-${selectedEmployee.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`
 			: "";
-		doc.save(`report-${data.year}-${String(data.month).padStart(2, "0")}${suffix}.pdf`);
+		doc.save(
+			`report-${data.year}-${String(data.month).padStart(2, "0")}${suffix}.pdf`,
+		);
 	}
 
 	const now = new Date();
@@ -518,7 +529,12 @@ function ReportsPage() {
 				) : null}
 				{data && data.scope !== "none" ? (
 					<div className="ml-auto flex gap-2">
-						<Button variant="outline" size="sm" onClick={downloadCsv} disabled={loading}>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={downloadCsv}
+							disabled={loading}
+						>
 							<FileSpreadsheet />
 							Export CSV
 						</Button>
@@ -559,40 +575,41 @@ function ReportsPage() {
 											: "Your own record"}
 							</CardDescription>
 						</CardHeader>
-					<CardContent>
-						<DataTable
-							table={table}
-							loading={loading}
-							columnCount={leafCount}
-							hidePagination
-							stickyColumn
-						/>
-					</CardContent>
-				</Card>
-				{selectedEmployee ? (
-					<Card>
-						<CardHeader>
-							<CardTitle>Daily register</CardTitle>
-							<CardDescription>
-								Every day of {monthLabel(cursor)} for {selectedEmployee.name}
-							</CardDescription>
-						</CardHeader>
-						<CardContent className="overflow-x-auto">
-							<table className="w-full min-w-160 text-sm">
-								<thead>
-									<tr className="border-b text-left text-xs text-muted-foreground">
-										<th className="py-1.5 pr-3">Date</th>
-										<th className="py-1.5 pr-3">Day</th>
-										<th className="py-1.5 pr-3">Status</th>
-										<th className="py-1.5 pr-3">In</th>
-										<th className="py-1.5 pr-3">Out</th>
-										<th className="py-1.5 pr-3">Hours</th>
-										<th className="py-1.5">Note</th>
-									</tr>
-								</thead>
-								<tbody>
-									{(data?.dailyByEmployee[selectedEmployee.employeeId] ?? []).map(
-										(day) => (
+						<CardContent>
+							<DataTable
+								table={table}
+								loading={loading}
+								columnCount={leafCount}
+								hidePagination
+								stickyColumn
+							/>
+						</CardContent>
+					</Card>
+					{selectedEmployee ? (
+						<Card>
+							<CardHeader>
+								<CardTitle>Daily register</CardTitle>
+								<CardDescription>
+									Every day of {monthLabel(cursor)} for {selectedEmployee.name}
+								</CardDescription>
+							</CardHeader>
+							<CardContent className="overflow-x-auto">
+								<table className="w-full min-w-160 text-sm">
+									<thead>
+										<tr className="border-b text-left text-xs text-muted-foreground">
+											<th className="py-1.5 pr-3">Date</th>
+											<th className="py-1.5 pr-3">Day</th>
+											<th className="py-1.5 pr-3">Status</th>
+											<th className="py-1.5 pr-3">In</th>
+											<th className="py-1.5 pr-3">Out</th>
+											<th className="py-1.5 pr-3">Hours</th>
+											<th className="py-1.5">Note</th>
+										</tr>
+									</thead>
+									<tbody>
+										{(
+											data?.dailyByEmployee[selectedEmployee.employeeId] ?? []
+										).map((day) => (
 											<tr key={day.date} className="border-b last:border-0">
 												<td className="py-1.5 pr-3 tabular-nums">{day.date}</td>
 												<td className="py-1.5 pr-3">{day.weekday}</td>
@@ -612,13 +629,12 @@ function ReportsPage() {
 													{day.note ?? ""}
 												</td>
 											</tr>
-										),
-									)}
-								</tbody>
-							</table>
-						</CardContent>
-					</Card>
-				) : null}
+										))}
+									</tbody>
+								</table>
+							</CardContent>
+						</Card>
+					) : null}
 					{flatIssues.length > 0 ? (
 						<Card>
 							<CardHeader className="flex-row flex-wrap items-center justify-between gap-3 space-y-0">
@@ -626,11 +642,16 @@ function ReportsPage() {
 									<CardTitle>Attendance issues</CardTitle>
 									<CardDescription>
 										Flagged days and justification outcomes for{" "}
-										{selectedEmployee ? selectedEmployee.name : monthLabel(cursor)}
+										{selectedEmployee
+											? selectedEmployee.name
+											: monthLabel(cursor)}
 									</CardDescription>
 								</div>
 								<div className="flex flex-wrap gap-2">
-									<Select value={issueTypeFilter} onValueChange={setIssueTypeFilter}>
+									<Select
+										value={issueTypeFilter}
+										onValueChange={setIssueTypeFilter}
+									>
 										<SelectTrigger className="h-9 w-40">
 											<SelectValue placeholder="All types" />
 										</SelectTrigger>
@@ -645,18 +666,23 @@ function ReportsPage() {
 											</SelectGroup>
 										</SelectContent>
 									</Select>
-									<Select value={issueStatusFilter} onValueChange={setIssueStatusFilter}>
+									<Select
+										value={issueStatusFilter}
+										onValueChange={setIssueStatusFilter}
+									>
 										<SelectTrigger className="h-9 w-40">
 											<SelectValue placeholder="All statuses" />
 										</SelectTrigger>
 										<SelectContent>
 											<SelectGroup>
 												<SelectItem value="all">All statuses</SelectItem>
-												{["open", "pending", "verified", "rejected"].map((status) => (
-													<SelectItem key={status} value={status}>
-														{status}
-													</SelectItem>
-												))}
+												{["open", "pending", "verified", "rejected"].map(
+													(status) => (
+														<SelectItem key={status} value={status}>
+															{status}
+														</SelectItem>
+													),
+												)}
 											</SelectGroup>
 										</SelectContent>
 									</Select>
@@ -691,7 +717,9 @@ function ReportsPage() {
 															{issue.employeeNo}
 														</span>
 													</td>
-													<td className="py-1.5 pr-3 tabular-nums">{issue.date}</td>
+													<td className="py-1.5 pr-3 tabular-nums">
+														{formatDate(issue.date)}
+													</td>
 													<td className="py-1.5 pr-3">
 														<Badge variant="secondary">
 															{issue.type.replace(/_/g, " ")}
@@ -713,7 +741,9 @@ function ReportsPage() {
 														</Badge>
 													</td>
 													<td className="max-w-72 truncate py-1.5 pr-3 text-muted-foreground">
-														{issue.justification ? `“${issue.justification}”` : "—"}
+														{issue.justification
+															? `“${issue.justification}”`
+															: "—"}
 													</td>
 													<td className="max-w-60 truncate py-1.5 text-xs text-destructive">
 														{issue.reviewNote ?? ""}

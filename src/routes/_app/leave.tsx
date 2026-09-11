@@ -57,6 +57,7 @@ import {
 } from "#/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { Textarea } from "#/components/ui/textarea";
+import { formatDate } from "#/lib/dates";
 import {
 	applyLeave,
 	cancelLeave,
@@ -214,7 +215,8 @@ function MyLeaveTab() {
 											{request.leaveTypeName}
 										</TableCell>
 										<TableCell>
-											{request.startDate} → {request.endDate}
+											{formatDate(request.startDate)} →{" "}
+											{formatDate(request.endDate)}
 										</TableCell>
 										<TableCell>{request.days}</TableCell>
 										<TableCell>
@@ -286,12 +288,12 @@ function LeaveWidgetsCard({
 						<ul className="flex flex-col gap-1.5">
 							{upcomingHolidays.map((holiday) => (
 								<li
-									key={holiday.date}
+									key={formatDate(holiday.date)}
 									className="flex items-center justify-between gap-2 text-sm"
 								>
 									<span className="truncate">{holiday.name}</span>
 									<span className="shrink-0 tabular-nums text-muted-foreground">
-										{holiday.date}
+										{formatDate(holiday.date)}
 									</span>
 								</li>
 							))}
@@ -304,7 +306,7 @@ function LeaveWidgetsCard({
 					<div className="space-y-1.5">
 						<CardTitle>On leave this week</CardTitle>
 						<CardDescription>
-							{weekStart} → {weekEnd}
+							{formatDate(weekStart)} → {formatDate(weekEnd)}
 						</CardDescription>
 					</div>
 					<CalendarRange className="size-4 text-muted-foreground" />
@@ -329,7 +331,7 @@ function LeaveWidgetsCard({
 										</span>
 									</span>
 									<span className="shrink-0 tabular-nums text-muted-foreground">
-										{row.startDate} → {row.endDate}
+										{formatDate(row.startDate)} → {formatDate(row.endDate)}
 									</span>
 								</li>
 							))}
@@ -643,8 +645,9 @@ function ApprovalsTab() {
 										</span>
 									</p>
 									<p className="text-sm text-muted-foreground">
-										{request.leaveTypeName} · {request.startDate} →{" "}
-										{request.endDate} · {request.days} working day(s)
+										{request.leaveTypeName} · {formatDate(request.startDate)} →{" "}
+										{formatDate(request.endDate)} · {request.days} working
+										day(s)
 									</p>
 									<p className="mt-1 truncate text-xs text-muted-foreground">
 										Reason: {request.reason}
@@ -725,7 +728,7 @@ function RejectDialog({
 					<AlertDialogTitle>Reject request?</AlertDialogTitle>
 					<AlertDialogDescription>
 						{target
-							? `${target.employeeName}'s ${target.leaveTypeName} leave (${target.startDate} → ${target.endDate})`
+							? `${target.employeeName}'s ${target.leaveTypeName} leave (${formatDate(target.startDate)} → ${formatDate(target.endDate)})`
 							: ""}{" "}
 						will be rejected and the reserved balance restored.
 					</AlertDialogDescription>

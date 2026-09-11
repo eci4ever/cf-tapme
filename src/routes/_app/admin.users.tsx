@@ -12,6 +12,7 @@ import {
 	DataTable,
 	DataTableSearchInput,
 } from "#/components/data-table/data-table";
+import { RoleBadge } from "#/components/role-badge";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -23,7 +24,6 @@ import {
 	AlertDialogTitle,
 } from "#/components/ui/alert-dialog";
 import { Badge } from "#/components/ui/badge";
-import { RoleBadge } from "#/components/role-badge";
 import { Button } from "#/components/ui/button";
 import {
 	Card,
@@ -50,6 +50,7 @@ import {
 	SelectValue,
 } from "#/components/ui/select";
 import { authClient } from "#/lib/auth-client";
+import { formatDate } from "#/lib/dates";
 
 export const Route = createFileRoute("/_app/admin/users")({
 	staticData: { title: "Users" },
@@ -220,7 +221,7 @@ function UsersAdminPage() {
 			header: "Joined",
 			cell: ({ row }) =>
 				row.original.createdAt
-					? new Date(row.original.createdAt).toLocaleDateString()
+					? formatDate(new Date(row.original.createdAt))
 					: "—",
 		},
 		{
@@ -234,7 +235,7 @@ function UsersAdminPage() {
 							<p className="mt-1 text-xs break-words text-muted-foreground">
 								{row.original.banReason}
 								{row.original.banExpires
-									? ` · until ${new Date(row.original.banExpires).toLocaleDateString()}`
+									? ` · until ${formatDate(new Date(row.original.banExpires))}`
 									: ""}
 							</p>
 						) : null}

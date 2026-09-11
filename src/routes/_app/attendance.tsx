@@ -46,6 +46,7 @@ import {
 	submitJustification,
 	verifyIssue,
 } from "#/lib/attendance.functions";
+import { formatDate, formatTime } from "#/lib/dates";
 import { getPosition } from "#/lib/geolocation";
 import {
 	type ClockInStatus,
@@ -260,7 +261,7 @@ function MyAttendanceTab() {
 			<Card>
 				<CardHeader>
 					<CardTitle>
-						Today — {new Date(`${today.today}T00:00:00`).toLocaleDateString()}
+						Today — {formatDate(new Date(`${today.today}T00:00:00`))}
 					</CardTitle>
 					<CardDescription>
 						{today.employee ? (
@@ -280,7 +281,7 @@ function MyAttendanceTab() {
 							<div>
 								<p className="text-xs text-muted-foreground">Clock in</p>
 								<p className="flex items-center gap-2 text-lg font-semibold">
-									{new Date(record.clockIn).toLocaleTimeString()}
+									{formatTime(new Date(record.clockIn))}
 									<ClockInBadge status={record.clockInStatus} />
 								</p>
 							</div>
@@ -288,7 +289,7 @@ function MyAttendanceTab() {
 								<p className="text-xs text-muted-foreground">Clock out</p>
 								<p className="flex items-center gap-2 text-lg font-semibold">
 									{record.clockOut
-										? new Date(record.clockOut).toLocaleTimeString()
+										? formatTime(new Date(record.clockOut))
 										: "—"}
 									{record.clockOutStatus ? (
 										<ClockOutBadge status={record.clockOutStatus} />
@@ -297,7 +298,7 @@ function MyAttendanceTab() {
 							</div>
 							{isClockedIn && today.targetClockOut ? (
 								<p className="text-sm text-muted-foreground">
-									Target clock out: {today.targetClockOut.toLocaleTimeString()}
+									Target clock out: {formatTime(today.targetClockOut)}
 								</p>
 							) : null}
 						</>
@@ -367,14 +368,14 @@ function MyAttendanceTab() {
 										<TableCell>{entry.date}</TableCell>
 										<TableCell>
 											<span className="flex items-center gap-2">
-												{new Date(entry.clockIn).toLocaleTimeString()}
+												{formatTime(new Date(entry.clockIn))}
 												<ClockInBadge status={entry.clockInStatus} />
 											</span>
 										</TableCell>
 										<TableCell>
 											<span className="flex items-center gap-2">
 												{entry.clockOut
-													? new Date(entry.clockOut).toLocaleTimeString()
+													? formatTime(new Date(entry.clockOut))
 													: "—"}
 												{entry.clockOutStatus ? (
 													<ClockOutBadge status={entry.clockOutStatus} />
@@ -566,7 +567,7 @@ function AllAttendanceTab() {
 										<TableCell>
 											{row.record ? (
 												<span className="flex items-center gap-2">
-													{new Date(row.record.clockIn).toLocaleTimeString()}
+													{formatTime(new Date(row.record.clockIn))}
 													<ClockInBadge status={row.record.clockInStatus} />
 												</span>
 											) : (
@@ -576,7 +577,7 @@ function AllAttendanceTab() {
 										<TableCell>
 											{row.record?.clockOut ? (
 												<span className="flex items-center gap-2">
-													{new Date(row.record.clockOut).toLocaleTimeString()}
+													{formatTime(new Date(row.record.clockOut))}
 													{row.record.clockOutStatus ? (
 														<ClockOutBadge status={row.record.clockOutStatus} />
 													) : null}
@@ -962,10 +963,7 @@ function IssueReviewCard() {
 												{issue.reviewerName ?? "—"}
 												{issue.verifiedAt ? (
 													<span className="block text-xs text-muted-foreground">
-														{new Date(issue.verifiedAt).toLocaleDateString(
-															"en-US",
-															{ day: "numeric", month: "short", year: "numeric" },
-														)}
+														{formatDate(issue.verifiedAt)}
 													</span>
 												) : null}
 											</TableCell>
@@ -1026,8 +1024,8 @@ function RejectDialog({
 						{issue ? <IssueTypeBadge type={issue.type} /> : null}
 					</DialogTitle>
 					<DialogDescription>
-						State why this justification is rejected. The employee will see
-						your reason and can submit again.
+						State why this justification is rejected. The employee will see your
+						reason and can submit again.
 					</DialogDescription>
 				</DialogHeader>
 				<form
@@ -1095,35 +1093,35 @@ function MyIssuesCard() {
 						No attendance issues this month. Keep it up!
 					</p>
 				) : (
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Date</TableHead>
-									<TableHead>Issue</TableHead>
-									<TableHead>Justification</TableHead>
-									<TableHead>Status</TableHead>
-									<TableHead>Reviewer note</TableHead>
-									<TableHead className="w-12" />
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{issues.map((issue) => (
-									<TableRow key={issue.id}>
-										<TableCell>{issue.date}</TableCell>
-										<TableCell>
-											<IssueTypeBadge type={issue.type} />
-										</TableCell>
-										<TableCell className="max-w-64 truncate text-sm">
-											{issue.justification ?? "—"}
-										</TableCell>
-										<TableCell>
-											<IssueStatusBadge status={issue.status} />
-										</TableCell>
-										<TableCell className="max-w-64 truncate text-sm">
-											{issue.status === "rejected" && issue.reviewNote
-												? issue.reviewNote
-												: "—"}
-										</TableCell>
+					<Table>
+						<TableHeader>
+							<TableRow>
+								<TableHead>Date</TableHead>
+								<TableHead>Issue</TableHead>
+								<TableHead>Justification</TableHead>
+								<TableHead>Status</TableHead>
+								<TableHead>Reviewer note</TableHead>
+								<TableHead className="w-12" />
+							</TableRow>
+						</TableHeader>
+						<TableBody>
+							{issues.map((issue) => (
+								<TableRow key={issue.id}>
+									<TableCell>{issue.date}</TableCell>
+									<TableCell>
+										<IssueTypeBadge type={issue.type} />
+									</TableCell>
+									<TableCell className="max-w-64 truncate text-sm">
+										{issue.justification ?? "—"}
+									</TableCell>
+									<TableCell>
+										<IssueStatusBadge status={issue.status} />
+									</TableCell>
+									<TableCell className="max-w-64 truncate text-sm">
+										{issue.status === "rejected" && issue.reviewNote
+											? issue.reviewNote
+											: "—"}
+									</TableCell>
 									<TableCell>
 										{issue.status !== "verified" ? (
 											<Button
@@ -1187,10 +1185,7 @@ function JustificationDialog({
 	useEffect(() => {
 		if (issue) {
 			setText(
-				issue.justification ??
-					issue.clockInNote ??
-					issue.clockOutNote ??
-					"",
+				issue.justification ?? issue.clockInNote ?? issue.clockOutNote ?? "",
 			);
 		}
 	}, [issue]);

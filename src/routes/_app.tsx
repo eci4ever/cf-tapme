@@ -13,6 +13,7 @@ import { Button } from "#/components/ui/button";
 import { ensureActiveOrg, getSession } from "#/lib/auth.functions";
 import { authClient } from "#/lib/auth-client";
 import { ensureSubscription } from "#/lib/billing.functions";
+import { formatDate } from "#/lib/dates";
 import { getMyOrgRole } from "#/lib/org.functions";
 import { GRACE_MS, PLANS } from "#/lib/subscription";
 
@@ -52,9 +53,7 @@ function SubscriptionBanner() {
 					Your {PLANS[subscription.plan].name} subscription has expired. Top up
 					and renew by{" "}
 					{subscription.paidUntil
-						? new Date(
-								subscription.paidUntil.getTime() + GRACE_MS,
-							).toLocaleDateString()
+						? formatDate(new Date(subscription.paidUntil.getTime() + GRACE_MS))
 						: "—"}{" "}
 					to keep {PLANS[subscription.plan].name} features.
 				</span>
@@ -67,8 +66,7 @@ function SubscriptionBanner() {
 				<Badge variant="outline">Renewal due</Badge>
 				<span>
 					Balance is insufficient to renew {PLANS[subscription.plan].name} by{" "}
-					{subscription.paidUntil?.toLocaleDateString() ?? "—"} — top up to
-					avoid interruption.
+					{formatDate(subscription.paidUntil)} — top up to avoid interruption.
 				</span>
 			</div>
 		);

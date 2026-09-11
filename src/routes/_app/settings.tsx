@@ -40,7 +40,6 @@ import {
 } from "#/components/ui/dialog";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
-import { Switch } from "#/components/ui/switch";
 import {
 	Select,
 	SelectContent,
@@ -49,6 +48,8 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
+import { Switch } from "#/components/ui/switch";
+import { formatDate } from "#/lib/dates";
 import {
 	deleteWorkSite,
 	getGeofenceSettings,
@@ -62,15 +63,14 @@ import {
 	listLeaveTypes,
 	updateLeaveType,
 } from "#/lib/leave.functions";
-import { getMyOrgRole } from "#/lib/org.functions";
 import {
 	expectedWorkDays,
 	FRI_SAT_WEEKEND_STATES,
-	MALAYSIA_HOLIDAYS,
 	MALAYSIA_HOLIDAY_YEARS,
+	MALAYSIA_HOLIDAYS,
 	MALAYSIA_STATES,
 } from "#/lib/malaysia-holidays";
-import { formatMinutes } from "#/lib/schedule";
+import { getMyOrgRole } from "#/lib/org.functions";
 import {
 	addHoliday,
 	deleteCurrentOrg,
@@ -82,6 +82,7 @@ import {
 	updateOrgName,
 	updateSchedule,
 } from "#/lib/org-settings.functions";
+import { formatMinutes } from "#/lib/schedule";
 
 export const Route = createFileRoute("/_app/settings")({
 	staticData: { title: "Settings" },
@@ -288,7 +289,8 @@ function ScheduleCard({
 				<CardDescription>
 					Applies to the whole organization. Normal shift is late after{" "}
 					{startTime} + grace; Flexi is late after {startTime} sharp and targets{" "}
-					{flexiHours} hours from clock-in. Timezone is locked to Asia/Kuala_Lumpur.
+					{flexiHours} hours from clock-in. Timezone is locked to
+					Asia/Kuala_Lumpur.
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
@@ -315,8 +317,8 @@ function ScheduleCard({
 							))}
 						</div>
 						<p className="text-xs text-muted-foreground">
-							Kelantan, Terengganu &amp; Kedah follow a Friday–Saturday weekend —
-							match your work days via "Import state holidays".
+							Kelantan, Terengganu &amp; Kedah follow a Friday–Saturday weekend
+							— match your work days via "Import state holidays".
 						</p>
 					</div>
 					<div className="grid gap-4 sm:grid-cols-3">
@@ -488,11 +490,11 @@ function HolidaysCard({
 					>
 						{addMutation.isPending ? "Adding..." : "Add holiday"}
 					</Button>
-				<ImportHolidaysDialog
-					existingDates={new Set(holidays.map((holiday) => holiday.date))}
-					schedule={schedule}
-					onImported={onChanged}
-				/>
+					<ImportHolidaysDialog
+						existingDates={new Set(holidays.map((holiday) => holiday.date))}
+						schedule={schedule}
+						onImported={onChanged}
+					/>
 				</form>
 				{holidays.length === 0 ? (
 					<p className="text-sm text-muted-foreground">
@@ -506,7 +508,7 @@ function HolidaysCard({
 								className="flex items-center justify-between gap-2 rounded border px-3 py-1.5 text-sm"
 							>
 								<span>
-									{holiday.date} — {holiday.name}
+									{formatDate(holiday.date)} — {holiday.name}
 								</span>
 								<Button
 									variant="ghost"
@@ -539,10 +541,11 @@ function ImportHolidaysDialog({
 }) {
 	const [open, setOpen] = useState(false);
 	const currentYear = new Date().getFullYear();
-	const defaultYear =
-		(MALAYSIA_HOLIDAY_YEARS as readonly number[]).includes(currentYear)
-			? currentYear
-			: MALAYSIA_HOLIDAY_YEARS[0];
+	const defaultYear = (MALAYSIA_HOLIDAY_YEARS as readonly number[]).includes(
+		currentYear,
+	)
+		? currentYear
+		: MALAYSIA_HOLIDAY_YEARS[0];
 	const [state, setState] = useState<string>(MALAYSIA_STATES[0]);
 	const [year, setYear] = useState<number>(defaultYear);
 	const [selected, setSelected] = useState<Set<string>>(new Set());
@@ -557,7 +560,9 @@ function ImportHolidaysDialog({
 	);
 	const daysMismatch = useMemo(() => {
 		const current = [...schedule.workDays].sort((a, b) => a - b).join(",");
-		const expected = [...expectedWorkDays(state)].sort((a, b) => a - b).join(",");
+		const expected = [...expectedWorkDays(state)]
+			.sort((a, b) => a - b)
+			.join(",");
 		return current !== expected;
 	}, [schedule.workDays, state]);
 
@@ -611,7 +616,9 @@ function ImportHolidaysDialog({
 		onSuccess: (result) => {
 			toast.success(
 				`Imported ${result.inserted} holiday${result.inserted === 1 ? "" : "s"}` +
-					(result.skipped > 0 ? ` · ${result.skipped} skipped (duplicate dates)` : ""),
+					(result.skipped > 0
+						? ` · ${result.skipped} skipped (duplicate dates)`
+						: ""),
 			);
 			setOpen(false);
 			onImported();
@@ -652,10 +659,7 @@ function ImportHolidaysDialog({
 				<div className="flex gap-2">
 					<div className="flex flex-1 flex-col gap-1.5">
 						<Label htmlFor="import-state">State</Label>
-						<Select
-							value={state}
-							onValueChange={(value) => setState(value)}
-						>
+						<Select value={state} onValueChange={(value) => setState(value)}>
 							<SelectTrigger id="import-state">
 								<SelectValue />
 							</SelectTrigger>
@@ -780,7 +784,9 @@ function EmailNotificationsCard({
 			return result;
 		},
 		onSuccess: (_result, next) => {
-			toast.success(next ? "Email notifications on" : "Email notifications off");
+			toast.success(
+				next ? "Email notifications on" : "Email notifications off",
+			);
 			onChanged();
 		},
 		onError: (error) => toast.error(error.message),
@@ -1275,7 +1281,9 @@ function SiteEditor({ site, onSaved }: { site: SiteRow; onSaved: () => void }) {
 		return (
 			<div
 				className={`flex items-center justify-between gap-2 rounded-lg border p-3 ${
-					unconfigured ? "border-amber-400 bg-amber-50 dark:bg-amber-950/30" : ""
+					unconfigured
+						? "border-amber-400 bg-amber-50 dark:bg-amber-950/30"
+						: ""
 				}`}
 			>
 				<div className="min-w-0">

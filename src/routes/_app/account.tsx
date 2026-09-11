@@ -46,6 +46,7 @@ import {
 } from "#/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { authClient } from "#/lib/auth-client";
+import { formatDate } from "#/lib/dates";
 
 export const Route = createFileRoute("/_app/account")({
 	staticData: { title: "Account" },
@@ -866,10 +867,10 @@ function SessionsTab({ currentToken }: { currentToken: string }) {
 										</TableCell>
 										<TableCell>{sessionItem.ipAddress ?? "—"}</TableCell>
 										<TableCell>
-											{new Date(sessionItem.createdAt).toLocaleDateString()}
+											{formatDate(new Date(sessionItem.createdAt))}
 										</TableCell>
 										<TableCell>
-											{new Date(sessionItem.expiresAt).toLocaleDateString()}
+											{formatDate(new Date(sessionItem.expiresAt))}
 										</TableCell>
 										<TableCell>
 											{!isCurrent ? (

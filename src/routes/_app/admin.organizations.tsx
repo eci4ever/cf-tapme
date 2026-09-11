@@ -29,7 +29,6 @@ import {
 } from "#/components/ui/dialog";
 import { Input } from "#/components/ui/input";
 import { Label } from "#/components/ui/label";
-import { Textarea } from "#/components/ui/textarea";
 import {
 	Select,
 	SelectContent,
@@ -38,11 +37,13 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
+import { Textarea } from "#/components/ui/textarea";
 import {
 	decideTopupRequest,
 	listOrgBilling,
 	listPendingTopupRequests,
 } from "#/lib/billing.functions";
+import { formatDate } from "#/lib/dates";
 import {
 	formatRm,
 	type PlanId,
@@ -77,10 +78,7 @@ function OrganizationsAdminPage() {
 		},
 	});
 	const orgs = (orgsQuery.data ?? []).filter((org) => {
-		if (
-			search &&
-			!org.name.toLowerCase().includes(search.toLowerCase())
-		) {
+		if (search && !org.name.toLowerCase().includes(search.toLowerCase())) {
 			return false;
 		}
 		if (statusFilter !== "all" && org.status !== statusFilter) {
@@ -152,7 +150,7 @@ function OrganizationsAdminPage() {
 						: `expired ${Math.abs(days)} day${Math.abs(days) === 1 ? "" : "s"} ago`;
 				return (
 					<div>
-						{new Date(paidUntil).toLocaleDateString()}
+						{formatDate(new Date(paidUntil))}
 						<p
 							className={`text-xs ${
 								days < 0
@@ -219,43 +217,43 @@ function OrganizationsAdminPage() {
 		<div className="flex flex-col gap-4">
 			<PendingTopupsCard />
 			<Card>
-			<CardHeader>
-				<CardTitle>Organization billing</CardTitle>
-				<CardDescription>
-					Manual credit top ups and adjustments per organization
-				</CardDescription>
-			</CardHeader>
-			<CardContent>
-				<DataTable
-					table={table}
-					loading={loading}
-					columnCount={columns.length}
-					stickyColumn
-					toolbar={
-						<div className="flex items-center gap-2">
-							<Input
-								value={search}
-								onChange={(event) => setSearch(event.target.value)}
-								placeholder="Search organization…"
-								className="h-9 w-56"
-							/>
-							<Select value={statusFilter} onValueChange={setStatusFilter}>
-								<SelectTrigger className="h-9 w-36">
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectGroup>
-										<SelectItem value="all">All statuses</SelectItem>
-										<SelectItem value="active">Active</SelectItem>
-										<SelectItem value="warning">Warning</SelectItem>
-										<SelectItem value="grace">Grace</SelectItem>
-									</SelectGroup>
-								</SelectContent>
-							</Select>
-						</div>
-					}
-				/>
-			</CardContent>
+				<CardHeader>
+					<CardTitle>Organization billing</CardTitle>
+					<CardDescription>
+						Manual credit top ups and adjustments per organization
+					</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<DataTable
+						table={table}
+						loading={loading}
+						columnCount={columns.length}
+						stickyColumn
+						toolbar={
+							<div className="flex items-center gap-2">
+								<Input
+									value={search}
+									onChange={(event) => setSearch(event.target.value)}
+									placeholder="Search organization…"
+									className="h-9 w-56"
+								/>
+								<Select value={statusFilter} onValueChange={setStatusFilter}>
+									<SelectTrigger className="h-9 w-36">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectGroup>
+											<SelectItem value="all">All statuses</SelectItem>
+											<SelectItem value="active">Active</SelectItem>
+											<SelectItem value="warning">Warning</SelectItem>
+											<SelectItem value="grace">Grace</SelectItem>
+										</SelectGroup>
+									</SelectContent>
+								</Select>
+							</div>
+						}
+					/>
+				</CardContent>
 			</Card>
 		</div>
 	);
@@ -332,7 +330,7 @@ function PendingTopupsCard() {
 									<p className="text-xs text-muted-foreground">
 										{formatRm(request.amountSen)} · ref {request.paymentRef} ·{" "}
 										{request.requestedByName} ·{" "}
-										{new Date(request.createdAt).toLocaleDateString()}
+										{formatDate(new Date(request.createdAt))}
 									</p>
 								</div>
 								<div className="flex gap-1">

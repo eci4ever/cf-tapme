@@ -11,9 +11,10 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
-import { authClient } from "#/lib/auth-client";
 import { getPlatformStats, runCronNow } from "#/lib/admin.functions";
+import { authClient } from "#/lib/auth-client";
 import { listOrgBilling } from "#/lib/billing.functions";
+import { formatDate } from "#/lib/dates";
 
 export const Route = createFileRoute("/_app/admin/")({
 	staticData: { title: "Platform admin" },
@@ -104,7 +105,7 @@ function AdminOverviewPage() {
 											</span>
 										</span>
 										<span className="shrink-0 text-xs text-muted-foreground">
-											{new Date(user.createdAt).toLocaleDateString()}
+											{formatDate(new Date(user.createdAt))}
 										</span>
 									</li>
 								))}
@@ -150,7 +151,9 @@ function AdminOverviewPage() {
 											</span>
 										</span>
 										<Badge
-											variant={org.status === "grace" ? "destructive" : "secondary"}
+											variant={
+												org.status === "grace" ? "destructive" : "secondary"
+											}
 										>
 											{org.status}
 										</Badge>
