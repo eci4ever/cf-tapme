@@ -8,6 +8,17 @@ import {
 import { Building2, CalendarCheck, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "#/components/ui/alert-dialog";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -186,14 +197,37 @@ function OnboardingPage() {
 										>
 											{acceptingId === invitation.id ? "Joining..." : "Accept"}
 										</Button>
-										<Button
-											size="sm"
-											variant="outline"
-											disabled={acceptingId !== null}
-											onClick={() => handleDecline(invitation)}
-										>
-											Decline
-										</Button>
+										<AlertDialog>
+											<AlertDialogTrigger asChild>
+												<Button
+													size="sm"
+													variant="outline"
+													disabled={acceptingId !== null}
+												>
+													Decline
+												</Button>
+											</AlertDialogTrigger>
+											<AlertDialogContent>
+												<AlertDialogHeader>
+													<AlertDialogTitle>
+														Decline {invitation.organizationName}?
+													</AlertDialogTitle>
+													<AlertDialogDescription>
+														This permanently rejects the invitation and cannot
+														be undone. Ask the owner to invite you again if you
+														change your mind.
+													</AlertDialogDescription>
+												</AlertDialogHeader>
+												<AlertDialogFooter>
+													<AlertDialogCancel>Cancel</AlertDialogCancel>
+													<AlertDialogAction
+														onClick={() => handleDecline(invitation)}
+													>
+														Decline invitation
+													</AlertDialogAction>
+												</AlertDialogFooter>
+											</AlertDialogContent>
+										</AlertDialog>
 									</div>
 								</div>
 							))}

@@ -84,6 +84,7 @@ function UsersAdminPage() {
 	const [search, setSearch] = useState("");
 	const [searchField, setSearchField] = useState<"email" | "name">("email");
 	const [banTarget, setBanTarget] = useState<UserRow | null>(null);
+	const [adminTarget, setAdminTarget] = useState<UserRow | null>(null);
 
 	useEffect(() => {
 		const timer = setTimeout(() => {
@@ -270,9 +271,7 @@ function UsersAdminPage() {
 									Make user
 								</DropdownMenuItem>
 							) : (
-								<DropdownMenuItem
-									onClick={() => handleSetRole(user.id, "admin")}
-								>
+								<DropdownMenuItem onClick={() => setAdminTarget(user)}>
 									<UserCog />
 									Make admin
 								</DropdownMenuItem>
@@ -357,6 +356,39 @@ function UsersAdminPage() {
 				}}
 				onConfirm={handleBanConfirm}
 			/>
+			<AlertDialog
+				open={adminTarget !== null}
+				onOpenChange={(open) => {
+					if (!open) {
+						setAdminTarget(null);
+					}
+				}}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							Make {adminTarget?.name} a platform admin?
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							Platform admins can manage every organization, user and billing
+							setting across TapMe.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => {
+								if (adminTarget) {
+									handleSetRole(adminTarget.id, "admin");
+								}
+								setAdminTarget(null);
+							}}
+						>
+							Grant admin
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</Card>
 	);
 }

@@ -894,14 +894,36 @@ function SessionsTab({ currentToken }: { currentToken: string }) {
 										</TableCell>
 										<TableCell>
 											{!isCurrent ? (
-												<Button
-													variant="ghost"
-													size="icon"
-													aria-label="Revoke session"
-													onClick={() => handleRevoke(sessionItem.token)}
-												>
-													<X />
-												</Button>
+												<AlertDialog>
+													<AlertDialogTrigger asChild>
+														<Button
+															variant="ghost"
+															size="icon"
+															aria-label="Revoke session"
+														>
+															<X />
+														</Button>
+													</AlertDialogTrigger>
+													<AlertDialogContent>
+														<AlertDialogHeader>
+															<AlertDialogTitle>
+																Revoke this session?
+															</AlertDialogTitle>
+															<AlertDialogDescription>
+																The device is signed out immediately. This
+																cannot be undone.
+															</AlertDialogDescription>
+														</AlertDialogHeader>
+														<AlertDialogFooter>
+															<AlertDialogCancel>Cancel</AlertDialogCancel>
+															<AlertDialogAction
+																onClick={() => handleRevoke(sessionItem.token)}
+															>
+																Revoke session
+															</AlertDialogAction>
+														</AlertDialogFooter>
+													</AlertDialogContent>
+												</AlertDialog>
 											) : null}
 										</TableCell>
 									</TableRow>

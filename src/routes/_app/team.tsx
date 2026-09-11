@@ -4,6 +4,16 @@ import { Send, UserCog, UserMinus, UserPlus, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { RoleBadge } from "#/components/role-badge";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "#/components/ui/alert-dialog";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -135,6 +145,10 @@ function TeamPage() {
 			toast.error(error.message);
 		},
 	});
+	const [removeTarget, setRemoveTarget] = useState<{
+		id: string;
+		name: string;
+	} | null>(null);
 	const removeMutation = useMutation({
 		mutationFn: async (memberId: string) => {
 			await authClient.organization.removeMember({ memberIdOrEmail: memberId });
@@ -180,6 +194,37 @@ function TeamPage() {
 
 	return (
 		<div className="flex flex-col gap-4">
+			<AlertDialog
+				open={removeTarget !== null}
+				onOpenChange={(open) => {
+					if (!open) {
+						setRemoveTarget(null);
+					}
+				}}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Remove {removeTarget?.name}?</AlertDialogTitle>
+						<AlertDialogDescription>
+							They lose access to this organization immediately. Their employee
+							record and attendance history are kept.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => {
+								if (removeTarget) {
+									handleRemove(removeTarget.id);
+								}
+								setRemoveTarget(null);
+							}}
+						>
+							Remove member
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 			<Card>
 				<CardHeader>
 					<CardTitle>Invite a teammate</CardTitle>
@@ -319,7 +364,12 @@ function TeamPage() {
 															</DropdownMenuItem>
 														) : null}
 														<DropdownMenuItem
-															onClick={() => handleRemove(member.id)}
+															onClick={() =>
+																setRemoveTarget({
+																	id: member.id,
+																	name: member.name,
+																})
+															}
 														>
 															<UserMinus />
 															Remove

@@ -3,6 +3,16 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { RoleBadge } from "#/components/role-badge";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "#/components/ui/alert-dialog";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -46,6 +56,11 @@ function OrgDetailPage() {
 	const [amount, setAmount] = useState("");
 	const [type, setType] = useState<"topup" | "adjustment">("topup");
 	const [note, setNote] = useState("");
+	const [pendingAdjust, setPendingAdjust] = useState<{
+		amountSen: number;
+		type: "topup" | "adjustment";
+		note: string;
+	} | null>(null);
 
 	const detailQuery = useQuery({
 		queryKey: ["admin", "org-detail", orgId],
@@ -119,6 +134,43 @@ function OrgDetailPage() {
 
 	return (
 		<div className="flex flex-col gap-4">
+			<AlertDialog
+				open={pendingAdjust !== null}
+				onOpenChange={(open) => {
+					if (!open) {
+						setPendingAdjust(null);
+					}
+				}}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>Apply negative adjustment?</AlertDialogTitle>
+						<AlertDialogDescription>
+							This deducts {formatRm(pendingAdjust?.amountSen ?? 0)} from{" "}
+							{org.name}&apos;s credit balance. The organization will see the
+							change in its ledger immediately.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => {
+								if (pendingAdjust) {
+									adjustMutation.mutate({
+										organizationId: org.id,
+										...pendingAdjust,
+									});
+								}
+								setPendingAdjust(null);
+								setAmount("");
+								setNote("");
+							}}
+						>
+							Apply deduction
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 			<Card>
 				<CardHeader>
 					<CardTitle className="flex flex-wrap items-center gap-2">
@@ -162,12 +214,21 @@ function OrgDetailPage() {
 									);
 									return;
 								}
-								adjustMutation.mutate({
+								const payload = {
 									organizationId: org.id,
 									amountSen,
 									type,
 									note,
-								});
+								};
+								if (amountSen < 0) {
+									setPendingAdjust({
+										amountSen,
+										type,
+										note,
+									});
+									return;
+								}
+								adjustMutation.mutate(payload);
 								setAmount("");
 								setNote("");
 							}}

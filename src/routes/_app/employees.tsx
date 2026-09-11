@@ -6,10 +6,26 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import { CalendarClock, FileUp, MoreHorizontal, Plus, UserRoundCog } from "lucide-react";
+import {
+	CalendarClock,
+	FileUp,
+	MoreHorizontal,
+	Plus,
+	UserRoundCog,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { DataTable, SortableHeader } from "#/components/data-table/data-table";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "#/components/ui/alert-dialog";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -43,6 +59,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "#/components/ui/select";
+import { dataRows, parseCsv } from "#/lib/csv";
 import {
 	createEmployee,
 	importEmployees,
@@ -54,7 +71,6 @@ import {
 	suggestEmployeeNo,
 	updateEmployee,
 } from "#/lib/employees.functions";
-import { dataRows, parseCsv } from "#/lib/csv";
 import { getGeofenceSettings } from "#/lib/geofence.functions";
 import { getMyOrgRole } from "#/lib/org.functions";
 import { getOrgSettings } from "#/lib/org-settings.functions";
@@ -124,8 +140,13 @@ function EmployeesPage() {
 	const [formOpen, setFormOpen] = useState(false);
 	const [editing, setEditing] = useState<EmployeeRow | null>(null);
 	const [initialMemberId, setInitialMemberId] = useState<string | null>(null);
-	const [scheduleTarget, setScheduleTarget] = useState<EmployeeRow | null>(null);
+	const [scheduleTarget, setScheduleTarget] = useState<EmployeeRow | null>(
+		null,
+	);
 	const [importOpen, setImportOpen] = useState(false);
+	const [deactivateTarget, setDeactivateTarget] = useState<EmployeeRow | null>(
+		null,
+	);
 	const employeesQuery = useQuery({
 		queryKey: ["employees", "list"],
 		queryFn: listEmployees,
@@ -166,14 +187,11 @@ function EmployeesPage() {
 	});
 	const employees = (employeesQuery.data ?? []) as EmployeeRow[];
 
-	const openAdd = useCallback(
-		(memberId?: string) => {
-			setEditing(null);
-			setInitialMemberId(memberId ?? null);
-			setFormOpen(true);
-		},
-		[],
-	);
+	const openAdd = useCallback((memberId?: string) => {
+		setEditing(null);
+		setInitialMemberId(memberId ?? null);
+		setFormOpen(true);
+	}, []);
 
 	const openEdit = useCallback((employee: EmployeeRow) => {
 		setEditing(employee);
@@ -296,9 +314,19 @@ function EmployeesPage() {
 									<CalendarClock />
 									Schedule
 								</DropdownMenuItem>
-								<DropdownMenuItem onClick={() => handleToggleActive(employee)}>
-									{employee.isActive ? "Deactivate" : "Activate"}
-								</DropdownMenuItem>
+								{employee.isActive ? (
+									<DropdownMenuItem
+										onClick={() => setDeactivateTarget(employee)}
+									>
+										Deactivate
+									</DropdownMenuItem>
+								) : (
+									<DropdownMenuItem
+										onClick={() => handleToggleActive(employee)}
+									>
+										Activate
+									</DropdownMenuItem>
+								)}
 							</DropdownMenuContent>
 						</DropdownMenu>
 					);
@@ -320,6 +348,39 @@ function EmployeesPage() {
 
 	return (
 		<div className="flex flex-col gap-4">
+			<AlertDialog
+				open={deactivateTarget !== null}
+				onOpenChange={(open) => {
+					if (!open) {
+						setDeactivateTarget(null);
+					}
+				}}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							Deactivate {deactivateTarget?.name}?
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							They will no longer be expected in reports and can be reactivated
+							at any time. Their attendance history is kept.
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => {
+								if (deactivateTarget) {
+									handleToggleActive(deactivateTarget);
+								}
+								setDeactivateTarget(null);
+							}}
+						>
+							Deactivate employee
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 			<OnboardingCard
 				members={linkableQuery.data ?? []}
 				employees={employees}
@@ -364,7 +425,9 @@ function EmployeesPage() {
 				open={importOpen}
 				onClose={() => setImportOpen(false)}
 				onImported={(imported) => {
-					toast.success(`${imported} employee${imported === 1 ? "" : "s"} imported`);
+					toast.success(
+						`${imported} employee${imported === 1 ? "" : "s"} imported`,
+					);
 					queryClient.invalidateQueries({ queryKey: ["employees"] });
 				}}
 			/>
@@ -473,8 +536,8 @@ function ImportCsvDialog({
 					<DialogTitle>Import employees from CSV</DialogTitle>
 					<DialogDescription>
 						Columns: Name (required), EmployeeNo (empty = auto), Position,
-						Shift, JoinedAt (YYYY-MM-DD), SupervisorNo, SiteName. Valid rows
-						are imported; problem rows are listed with reasons.
+						Shift, JoinedAt (YYYY-MM-DD), SupervisorNo, SiteName. Valid rows are
+						imported; problem rows are listed with reasons.
 					</DialogDescription>
 				</DialogHeader>
 				{result ? (
@@ -688,8 +751,8 @@ function ScheduleDialog({
 						Anything left on "Org default" follows the organization schedule
 						{orgSchedule
 							? ` (${orgDaysLabel} · ${minutesToTime(orgSchedule.workStartMinutes)}–${minutesToTime(orgSchedule.workEndMinutes)} · grace ${orgSchedule.graceMinutes}m)`
-							: ""}.
-						Late detection, reminders, reports and leave counting all use the
+							: ""}
+						. Late detection, reminders, reports and leave counting all use the
 						resolved schedule.
 					</DialogDescription>
 				</DialogHeader>
@@ -1177,7 +1240,9 @@ function EmployeeFormDialog({
 						</div>
 						{linkable.length > 0 ? (
 							<div className="flex flex-col gap-2">
-								<Label htmlFor="employee-link">Link member account (optional)</Label>
+								<Label htmlFor="employee-link">
+									Link member account (optional)
+								</Label>
 								<Select value={linkTarget} onValueChange={setLinkTarget}>
 									<SelectTrigger id="employee-link" className="w-full">
 										<SelectValue

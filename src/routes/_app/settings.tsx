@@ -510,17 +510,39 @@ function HolidaysCard({
 								<span>
 									{formatDate(holiday.date)} — {holiday.name}
 								</span>
-								<Button
-									variant="ghost"
-									size="icon"
-									aria-label={`Remove ${holiday.name}`}
-									disabled={deleteMutation.isPending}
-									onClick={() =>
-										deleteMutation.mutate({ holidayId: holiday.id })
-									}
-								>
-									<Trash2 />
-								</Button>
+								<AlertDialog>
+									<AlertDialogTrigger asChild>
+										<Button
+											variant="ghost"
+											size="icon"
+											aria-label={`Remove ${holiday.name}`}
+											disabled={deleteMutation.isPending}
+										>
+											<Trash2 />
+										</Button>
+									</AlertDialogTrigger>
+									<AlertDialogContent>
+										<AlertDialogHeader>
+											<AlertDialogTitle>
+												Remove {holiday.name}?
+											</AlertDialogTitle>
+											<AlertDialogDescription>
+												Attendance on {formatDate(holiday.date)} will count as a
+												regular working day again.
+											</AlertDialogDescription>
+										</AlertDialogHeader>
+										<AlertDialogFooter>
+											<AlertDialogCancel>Cancel</AlertDialogCancel>
+											<AlertDialogAction
+												onClick={() =>
+													deleteMutation.mutate({ holidayId: holiday.id })
+												}
+											>
+												Remove holiday
+											</AlertDialogAction>
+										</AlertDialogFooter>
+									</AlertDialogContent>
+								</AlertDialog>
 							</li>
 						))}
 					</ul>
@@ -1402,16 +1424,34 @@ function SiteEditor({ site, onSaved }: { site: SiteRow; onSaved: () => void }) {
 				>
 					Cancel
 				</Button>
-				<Button
-					type="button"
-					variant="ghost"
-					size="sm"
-					className="text-destructive"
-					disabled={deleteMutation.isPending}
-					onClick={() => deleteMutation.mutate()}
-				>
-					Delete
-				</Button>
+				<AlertDialog>
+					<AlertDialogTrigger asChild>
+						<Button
+							type="button"
+							variant="ghost"
+							size="sm"
+							className="text-destructive"
+							disabled={deleteMutation.isPending}
+						>
+							Delete
+						</Button>
+					</AlertDialogTrigger>
+					<AlertDialogContent>
+						<AlertDialogHeader>
+							<AlertDialogTitle>Delete this work site?</AlertDialogTitle>
+							<AlertDialogDescription>
+								Employees assigned here will have no site and clock-ins will no
+								longer be geofenced to it. Existing attendance records are kept.
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel>Cancel</AlertDialogCancel>
+							<AlertDialogAction onClick={() => deleteMutation.mutate()}>
+								Delete site
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
 			</div>
 		</div>
 	);
@@ -1638,13 +1678,33 @@ function LeaveTypesCard() {
 										>
 											Edit
 										</Button>
-										<Button
-											variant="ghost"
-											size="sm"
-											onClick={() => handleDelete(type.id)}
-										>
-											Delete
-										</Button>
+										<AlertDialog>
+											<AlertDialogTrigger asChild>
+												<Button variant="ghost" size="sm">
+													Delete
+												</Button>
+											</AlertDialogTrigger>
+											<AlertDialogContent>
+												<AlertDialogHeader>
+													<AlertDialogTitle>
+														Delete {type.name} leave type?
+													</AlertDialogTitle>
+													<AlertDialogDescription>
+														Pending requests using this type are cancelled and
+														employees lose its quota. Already-approved leave
+														stays in history.
+													</AlertDialogDescription>
+												</AlertDialogHeader>
+												<AlertDialogFooter>
+													<AlertDialogCancel>Cancel</AlertDialogCancel>
+													<AlertDialogAction
+														onClick={() => handleDelete(type.id)}
+													>
+														Delete type
+													</AlertDialogAction>
+												</AlertDialogFooter>
+											</AlertDialogContent>
+										</AlertDialog>
 									</div>
 								</div>
 							),
