@@ -3,6 +3,7 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import {
 	type ColumnDef,
 	getCoreRowModel,
+	type PaginationState,
 	useReactTable,
 } from "@tanstack/react-table";
 import { MoreHorizontal, ShieldOff, UserCog, VenetianMask } from "lucide-react";
@@ -54,6 +55,32 @@ import { formatDate } from "#/lib/dates";
 
 export const Route = createFileRoute("/_app/admin/users")({
 	staticData: { title: "Users" },
+	validateSearch: (
+		search: Record<string, unknown>,
+	): { page?: number; q?: string; field?: "email" | "name" } => {
+		const rawPage =
+			typeof search.page === "number"
+				? search.page
+				: typeof search.page === "string" && /^\d+$/.test(search.page)
+					? Number(search.page)
+					: undefined;
+		return {
+			page:
+				typeof rawPage === "number" && Number.isInteger(rawPage) && rawPage >= 0
+					? rawPage
+					: undefined,
+			q:
+				typeof search.q === "string"
+					? search.q
+					: typeof search.q === "number"
+						? String(search.q)
+						: undefined,
+			field:
+				search.field === "email" || search.field === "name"
+					? search.field
+					: undefined,
+		};
+	},
 	component: UsersAdminPage,
 });
 
@@ -78,25 +105,56 @@ const BAN_DURATIONS = [
 
 function UsersAdminPage() {
 	const router = useRouter();
+	const { page, q, field } = Route.useSearch();
+	const navigate = Route.useNavigate();
 	const queryClient = useQueryClient();
-	const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: 25 });
-	const [searchInput, setSearchInput] = useState("");
-	const [search, setSearch] = useState("");
-	const [searchField, setSearchField] = useState<"email" | "name">("email");
+	const pagination: PaginationState = { pageIndex: page ?? 0, pageSize: 25 };
+	const searchField = field ?? "email";
+	const [searchInput, setSearchInput] = useState(q ?? "");
+	const search = q ?? "";
 	const [banTarget, setBanTarget] = useState<UserRow | null>(null);
 	const [adminTarget, setAdminTarget] = useState<UserRow | null>(null);
 
-	useEffect(() => {
-		const timer = setTimeout(() => {
-			setSearch(searchInput);
-			setPagination((previous) => ({ ...previous, pageIndex: 0 }));
-		}, 300);
-		return () => clearTimeout(timer);
-	}, [searchInput]);
+	const setPagination = (
+		updater: PaginationState | ((previous: PaginationState) => PaginationState),
+	) => {
+		const next = typeof updater === "function" ? updater(pagination) : updater;
+		navigate({
+			search: (prev) => ({
+				...prev,
+				page: next.pageIndex > 0 ? next.pageIndex : undefined,
+			}),
+		});
+	};
+
+	const setSearchField = (value: "email" | "name") =>
+		navigate({
+			search: (prev) => ({
+				...prev,
+				field: value,
+				page: undefined,
+			}),
+		});
 
 	useEffect(() => {
-		setPagination((previous) => ({ ...previous, pageIndex: 0 }));
-	}, [searchField]);
+		const timer = setTimeout(() => {
+			if (searchInput !== search) {
+				navigate({
+					search: (prev) => ({
+						...prev,
+						q: searchInput || undefined,
+						page: undefined,
+					}),
+				});
+			}
+		}, 300);
+		return () => clearTimeout(timer);
+	}, [searchInput, search, navigate]);
+
+	// Keep the input in sync when the committed search changes (back/forward)
+	useEffect(() => {
+		setSearchInput(search);
+	}, [search]);
 
 	const usersQuery = useQuery({
 		queryKey: [

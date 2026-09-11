@@ -52,6 +52,21 @@ import {
 
 export const Route = createFileRoute("/_app/admin/organizations")({
 	staticData: { title: "Organization" },
+	validateSearch: (
+		search: Record<string, unknown>,
+	): { q?: string; status?: string } => ({
+		q:
+			typeof search.q === "string"
+				? search.q
+				: typeof search.q === "number"
+					? String(search.q)
+					: undefined,
+		status:
+			typeof search.status === "string" &&
+			["all", "active", "warning", "grace"].includes(search.status)
+				? search.status
+				: undefined,
+	}),
 	component: OrganizationsAdminPage,
 });
 
@@ -67,9 +82,19 @@ type OrgBillingRow = {
 };
 
 function OrganizationsAdminPage() {
+	const { q, status } = Route.useSearch();
+	const navigate = Route.useNavigate();
 	const [sorting, setSorting] = useState([{ id: "name", desc: false }]);
-	const [search, setSearch] = useState("");
-	const [statusFilter, setStatusFilter] = useState<string>("all");
+	const search = q ?? "";
+	const statusFilter = status ?? "all";
+	const setSearch = (value: string) =>
+		navigate({
+			search: (prev) => ({ ...prev, q: value || undefined }),
+		});
+	const setStatusFilter = (value: string) =>
+		navigate({
+			search: (prev) => ({ ...prev, status: value }),
+		});
 	const orgsQuery = useQuery({
 		queryKey: ["admin", "orgs"],
 		queryFn: async () => {

@@ -69,6 +69,13 @@ import {
 
 export const Route = createFileRoute("/_app/leave")({
 	staticData: { title: "Leave" },
+	validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+		tab:
+			typeof search.tab === "string" &&
+			["mine", "approvals"].includes(search.tab)
+				? search.tab
+				: undefined,
+	}),
 	component: LeavePage,
 });
 
@@ -104,8 +111,13 @@ type ApprovalRow = {
 };
 
 function LeavePage() {
+	const { tab } = Route.useSearch();
+	const navigate = Route.useNavigate();
+	const setTab = (value: string) =>
+		navigate({ search: (prev) => ({ ...prev, tab: value }) });
+
 	return (
-		<Tabs defaultValue="mine" className="gap-4">
+		<Tabs value={tab ?? "mine"} onValueChange={setTab} className="gap-4">
 			<TabsList>
 				<TabsTrigger value="mine">My leave</TabsTrigger>
 				<TabsTrigger value="approvals">Approvals</TabsTrigger>

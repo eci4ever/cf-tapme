@@ -1,6 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import {
 	Card,
 	CardContent,
@@ -25,18 +24,26 @@ import {
 	TableHeader,
 	TableRow,
 } from "#/components/ui/table";
-import { listOrgBilling } from "#/lib/billing.functions";
+import { AUDIT_ACTION_LABELS, AUDIT_TONE_CLASS } from "#/lib/audit-labels";
 import {
 	listPlatformAuditLogs,
 	PLATFORM_AUDIT_ACTION_KEYS,
 } from "#/lib/auth.functions";
-import {
-	AUDIT_ACTION_LABELS,
-	AUDIT_TONE_CLASS,
-} from "#/lib/audit-labels";
+import { listOrgBilling } from "#/lib/billing.functions";
 
 export const Route = createFileRoute("/_app/admin/audit")({
 	staticData: { title: "Audit log" },
+	validateSearch: (
+		search: Record<string, unknown>,
+	): { org?: string; action?: string } => ({
+		org: typeof search.org === "string" && search.org ? search.org : undefined,
+		action:
+			typeof search.action === "string" &&
+			(search.action === "all" ||
+				PLATFORM_AUDIT_ACTION_KEYS.includes(search.action))
+				? search.action
+				: undefined,
+	}),
 	component: AdminAuditPage,
 });
 
@@ -52,8 +59,18 @@ type AuditRow = {
 };
 
 function AdminAuditPage() {
-	const [orgFilter, setOrgFilter] = useState<string>("all");
-	const [actionFilter, setActionFilter] = useState<string>("all");
+	const { org, action } = Route.useSearch();
+	const navigate = Route.useNavigate();
+	const orgFilter = org ?? "all";
+	const actionFilter = action ?? "all";
+	const setOrgFilter = (value: string) =>
+		navigate({
+			search: (prev) => ({ ...prev, org: value }),
+		});
+	const setActionFilter = (value: string) =>
+		navigate({
+			search: (prev) => ({ ...prev, action: value }),
+		});
 
 	const orgsQuery = useQuery({
 		queryKey: ["admin", "orgs"],

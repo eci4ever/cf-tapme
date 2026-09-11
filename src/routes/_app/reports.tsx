@@ -10,7 +10,7 @@ import {
 	Download,
 	FileSpreadsheet,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import { DataTable } from "#/components/data-table/data-table";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
@@ -34,6 +34,35 @@ import { getMonthlyReport } from "#/lib/reports.functions";
 
 export const Route = createFileRoute("/_app/reports")({
 	staticData: { title: "Reports" },
+	validateSearch: (
+		search: Record<string, unknown>,
+	): {
+		month?: string;
+		employee?: string;
+		issueType?: string;
+		issueStatus?: string;
+	} => ({
+		month:
+			typeof search.month === "string" &&
+			/^\d{4}-(0[1-9]|1[0-2])$/.test(search.month)
+				? search.month
+				: undefined,
+		employee:
+			typeof search.employee === "string" && search.employee
+				? search.employee
+				: undefined,
+		issueType:
+			typeof search.issueType === "string" && search.issueType
+				? search.issueType
+				: undefined,
+		issueStatus:
+			typeof search.issueStatus === "string" &&
+			["all", "open", "pending", "verified", "rejected"].includes(
+				search.issueStatus,
+			)
+				? search.issueStatus
+				: undefined,
+	}),
 	component: ReportsPage,
 });
 
@@ -122,11 +151,31 @@ function shiftMonth(cursor: Cursor, delta: number): Cursor {
 	return { year: Math.floor(total / 12), month: (total % 12) + 1 };
 }
 
+function parseMonthParam(value: string): Cursor {
+	return { year: Number(value.slice(0, 4)), month: Number(value.slice(5, 7)) };
+}
+
+function currentCursor(): Cursor {
+	const now = new Date();
+	return { year: now.getFullYear(), month: now.getMonth() + 1 };
+}
+
 function ReportsPage() {
-	const [cursor, setCursor] = useState<Cursor>(() => {
-		const now = new Date();
-		return { year: now.getFullYear(), month: now.getMonth() + 1 };
-	});
+	const { month, employee, issueType, issueStatus } = Route.useSearch();
+	const navigate = Route.useNavigate();
+	const cursor = useMemo(
+		() => (month ? parseMonthParam(month) : currentCursor()),
+		[month],
+	);
+	const setCursor = (updater: (value: Cursor) => Cursor) => {
+		const next = updater(cursor);
+		navigate({
+			search: (prev) => ({
+				...prev,
+				month: `${next.year}-${String(next.month).padStart(2, "0")}`,
+			}),
+		});
+	};
 	const reportQuery = useQuery({
 		queryKey: ["reports", "monthly", cursor.year, cursor.month],
 		queryFn: () =>
@@ -137,7 +186,14 @@ function ReportsPage() {
 	const data = reportQuery.data ?? null;
 	const loading = reportQuery.isPending;
 
-	const [employeeFilter, setEmployeeFilter] = useState<string>("all");
+	const employeeFilter = employee ?? "all";
+	const setEmployeeFilter = (value: string) =>
+		navigate({
+			search: (prev) => ({
+				...prev,
+				employee: value === "all" ? undefined : value,
+			}),
+		});
 	const allRows = data?.rows ?? [];
 	const rows =
 		employeeFilter === "all"
@@ -152,8 +208,22 @@ function ReportsPage() {
 			: Object.entries(data?.issuesByEmployee ?? {}).filter(
 					([employeeId]) => employeeId === employeeFilter,
 				);
-	const [issueTypeFilter, setIssueTypeFilter] = useState<string>("all");
-	const [issueStatusFilter, setIssueStatusFilter] = useState<string>("all");
+	const issueTypeFilter = issueType ?? "all";
+	const issueStatusFilter = issueStatus ?? "all";
+	const setIssueTypeFilter = (value: string) =>
+		navigate({
+			search: (prev) => ({
+				...prev,
+				issueType: value === "all" ? undefined : value,
+			}),
+		});
+	const setIssueStatusFilter = (value: string) =>
+		navigate({
+			search: (prev) => ({
+				...prev,
+				issueStatus: value === "all" ? undefined : value,
+			}),
+		});
 	const flatIssues = useMemo(() => {
 		const employeeById = new Map(
 			allRows.map((row) => [row.employeeId, row] as const),

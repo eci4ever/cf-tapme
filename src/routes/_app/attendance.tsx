@@ -80,6 +80,19 @@ function LoadError({
 
 export const Route = createFileRoute("/_app/attendance")({
 	staticData: { title: "Attendance" },
+	validateSearch: (
+		search: Record<string, unknown>,
+	): { tab?: string; date?: string } => ({
+		tab:
+			typeof search.tab === "string" &&
+			["me", "all", "issues"].includes(search.tab)
+				? search.tab
+				: undefined,
+		date:
+			typeof search.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(search.date)
+				? search.date
+				: undefined,
+	}),
 	component: AttendancePage,
 });
 
@@ -116,13 +129,18 @@ type TodayData = {
 
 function AttendancePage() {
 	const { orgRole } = useRouteContext({ from: "/_app" });
+	const { tab } = Route.useSearch();
+	const navigate = Route.useNavigate();
+	const setTab = (value: string) =>
+		navigate({ search: (prev) => ({ ...prev, tab: value }) });
 	const canViewAll =
 		orgRole === "admin" || orgRole === "owner" || orgRole === "supervisor";
 	const canReview =
 		orgRole === "admin" || orgRole === "owner" || orgRole === "supervisor";
+	const activeTab = tab === "all" && !canViewAll ? "me" : (tab ?? "me");
 
 	return (
-		<Tabs defaultValue="me" className="gap-4">
+		<Tabs value={activeTab} onValueChange={setTab} className="gap-4">
 			<TabsList>
 				<TabsTrigger value="me">My attendance</TabsTrigger>
 				{canViewAll ? (
@@ -491,7 +509,11 @@ type AllAttendanceRow = {
 };
 
 function AllAttendanceTab() {
-	const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
+	const { date: dateParam } = Route.useSearch();
+	const navigate = Route.useNavigate();
+	const date = dateParam ?? new Date().toISOString().slice(0, 10);
+	const setDate = (value: string) =>
+		navigate({ search: (prev) => ({ ...prev, date: value }) });
 	const [editTarget, setEditTarget] = useState<AllAttendanceRow | null>(null);
 	const listQuery = useQuery({
 		queryKey: ["attendance", "all", date],

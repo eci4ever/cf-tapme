@@ -50,6 +50,13 @@ import { formatDate } from "#/lib/dates";
 
 export const Route = createFileRoute("/_app/account")({
 	staticData: { title: "Account" },
+	validateSearch: (search: Record<string, unknown>): { tab?: string } => ({
+		tab:
+			typeof search.tab === "string" &&
+			["profile", "security", "sessions"].includes(search.tab)
+				? search.tab
+				: undefined,
+	}),
 	component: AccountPage,
 });
 
@@ -58,11 +65,15 @@ type SessionRow = NonNullable<
 >[number];
 
 function AccountPage() {
+	const { tab } = Route.useSearch();
+	const navigate = Route.useNavigate();
+	const setTab = (value: string) =>
+		navigate({ search: (prev) => ({ ...prev, tab: value }) });
 	const { data: session, refetch: refetchSession } = authClient.useSession();
 	const user = session?.user;
 
 	return (
-		<Tabs defaultValue="profile" className="gap-4">
+		<Tabs value={tab ?? "profile"} onValueChange={setTab} className="gap-4">
 			<TabsList>
 				<TabsTrigger value="profile">Profile</TabsTrigger>
 				<TabsTrigger value="security">Security</TabsTrigger>
