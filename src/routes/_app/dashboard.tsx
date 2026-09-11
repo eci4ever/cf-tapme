@@ -143,7 +143,7 @@ function OrgStatsRow({
 }) {
 	if (statsQuery.isPending) {
 		return (
-			<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+			<div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
 				{[1, 2, 3, 4].map((index) => (
 					<Card key={index}>
 						<CardContent className="pt-6">
@@ -159,7 +159,7 @@ function OrgStatsRow({
 	}
 	const stats = statsQuery.data;
 	return (
-		<div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+		<div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
 			<SummaryCard
 				label="Present today"
 				value={String(stats.presentToday)}
@@ -760,7 +760,7 @@ function SummaryCard({
 				to ? "h-full transition-colors hover:border-primary/40" : "h-full"
 			}
 		>
-			<CardContent className="flex h-full flex-col gap-2 pt-4">
+			<CardContent className="flex h-full flex-col gap-1.5 px-4 pt-4 sm:gap-2">
 				<div className="flex items-center justify-between gap-2">
 					<CardDescription className="text-xs">{label}</CardDescription>
 					<span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 text-primary">
