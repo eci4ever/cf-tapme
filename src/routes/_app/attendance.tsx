@@ -570,8 +570,16 @@ function AllAttendanceTab() {
 								data.map((row) => (
 									<TableRow
 										key={row.employee.id}
-										className="cursor-pointer"
+										className="cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+										tabIndex={0}
+										aria-label={`Edit attendance for ${row.employee.name}`}
 										onClick={() => setEditTarget(row)}
+										onKeyDown={(event) => {
+										if (event.key === "Enter" || event.key === " ") {
+											event.preventDefault();
+											setEditTarget(row);
+										}
+									}}
 									>
 										<TableCell className="sticky left-0 z-10 bg-card [tr:hover_&]:bg-muted/50">
 											<div className="flex min-w-0 items-baseline gap-2">
