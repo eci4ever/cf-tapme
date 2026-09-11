@@ -73,7 +73,10 @@ export function Turnstile({
 						callback: (token: string) => onTokenRef.current(token),
 						"expired-callback": () => onTokenRef.current(null),
 						"error-callback": () => onTokenRef.current(null),
-						theme: "auto",
+						// Match the app theme (class on <html>), not just the OS preference.
+						theme: document.documentElement.classList.contains("dark")
+							? "dark"
+							: "light",
 					}) ?? null;
 			})
 			.catch(() => onTokenRef.current(null));

@@ -264,8 +264,8 @@ function TeamPage() {
 								</SelectTrigger>
 								<SelectContent>
 									<SelectGroup>
-										<SelectItem value="member">member</SelectItem>
-										<SelectItem value="admin">admin</SelectItem>
+										<SelectItem value="member">Member</SelectItem>
+										<SelectItem value="admin">Admin</SelectItem>
 									</SelectGroup>
 								</SelectContent>
 							</Select>

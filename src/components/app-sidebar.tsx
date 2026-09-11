@@ -140,7 +140,10 @@ export function AppSidebar() {
 										<SidebarMenuItem key={item.to}>
 											<SidebarMenuButton
 												asChild
-												isActive={pathname === item.to}
+												isActive={
+													pathname === item.to ||
+													pathname.startsWith(`${item.to}/`)
+												}
 												tooltip={item.title}
 											>
 												<Link to={item.to}>

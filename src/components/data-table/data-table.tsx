@@ -38,7 +38,9 @@ export function DataTableSearchInput({
 }) {
 	return (
 		<Input
-			placeholder={placeholder}
+			type="search"
+			aria-label={placeholder}
+			placeholder={`${placeholder}…`}
 			value={value}
 			onChange={(event) => onChange(event.target.value)}
 			className="h-8 w-48 lg:w-64"
@@ -146,6 +148,13 @@ export function DataTable<TData>({
 								{headerGroup.headers.map((header, headerIndex) => (
 									<TableHead
 										key={header.id}
+										aria-sort={
+											header.column.getIsSorted() === "asc"
+												? "ascending"
+												: header.column.getIsSorted() === "desc"
+													? "descending"
+													: undefined
+										}
 										className={
 											stickyColumn && headerIndex === 0
 												? stickyHeadClass

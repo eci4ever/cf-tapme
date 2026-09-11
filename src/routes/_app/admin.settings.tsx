@@ -194,6 +194,7 @@ function PaymentSettingsPage() {
 							<input
 								ref={fileRef}
 								type="file"
+								aria-label="Upload DuitNow QR image"
 								accept="image/png,image/jpeg,image/webp"
 								className="sr-only"
 								onChange={(event) => {

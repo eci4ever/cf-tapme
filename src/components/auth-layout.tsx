@@ -39,12 +39,12 @@ export function AuthShell({
 					<span className="font-semibold tracking-tight">TapMe</span>
 				</Link>
 				<div className="relative flex flex-col gap-8">
-					<h2 className="max-w-md text-balance text-3xl font-bold tracking-tight">
+					<p className="max-w-md text-balance text-3xl font-bold tracking-tight">
 						Attendance &amp; leave,{" "}
 						<span className="bg-gradient-to-r from-primary to-primary/50 bg-clip-text text-transparent">
 							without the busywork
 						</span>
-					</h2>
+					</p>
 					<ul className="flex flex-col gap-3">
 						{highlights.map((item) => (
 							<li key={item.text} className="flex items-center gap-3 text-sm">

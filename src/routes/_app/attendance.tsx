@@ -333,7 +333,7 @@ function MyAttendanceTab() {
 							disabled={pending || !today.employee || record !== null}
 						>
 							<LogIn />
-							{pending ? "…" : "Clock in"}
+							{pending ? "Clocking in…" : "Clock in"}
 						</Button>
 						<Button
 							variant="outline"
@@ -341,7 +341,7 @@ function MyAttendanceTab() {
 							disabled={pending || !today.employee || !isClockedIn}
 						>
 							<LogOut />
-							Clock out
+							{pending ? "Clocking out…" : "Clock out"}
 						</Button>
 					</div>
 				</CardContent>
@@ -575,11 +575,11 @@ function AllAttendanceTab() {
 										aria-label={`Edit attendance for ${row.employee.name}`}
 										onClick={() => setEditTarget(row)}
 										onKeyDown={(event) => {
-										if (event.key === "Enter" || event.key === " ") {
-											event.preventDefault();
-											setEditTarget(row);
-										}
-									}}
+											if (event.key === "Enter" || event.key === " ") {
+												event.preventDefault();
+												setEditTarget(row);
+											}
+										}}
 									>
 										<TableCell className="sticky left-0 z-10 bg-card [tr:hover_&]:bg-muted/50">
 											<div className="flex min-w-0 items-baseline gap-2">

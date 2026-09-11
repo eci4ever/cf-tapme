@@ -547,7 +547,7 @@ function ClockWidget({
 							disabled={clockMutation.isPending || record !== null}
 						>
 							<LogIn />
-							{clockMutation.isPending ? "…" : "Clock in"}
+							{clockMutation.isPending ? "Clocking in…" : "Clock in"}
 						</Button>
 						<Button
 							variant="outline"
