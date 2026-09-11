@@ -176,6 +176,8 @@ function OrgDetailPage() {
 								<Label htmlFor="credit-amount">Amount (RM)</Label>
 								<Input
 									id="credit-amount"
+									name="amount"
+									inputMode="decimal"
 									placeholder="29.00"
 									value={amount}
 									onChange={(event) => setAmount(event.target.value)}

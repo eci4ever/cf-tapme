@@ -68,7 +68,9 @@ function PaymentSettingsPage() {
 		onSuccess: () => {
 			toast.success("Payment settings saved");
 			setQrCleared(false);
-			queryClient.invalidateQueries({ queryKey: ["admin", "payment-settings"] });
+			queryClient.invalidateQueries({
+				queryKey: ["admin", "payment-settings"],
+			});
 			queryClient.invalidateQueries({
 				queryKey: ["billing", "payment-instructions"],
 			});
@@ -143,6 +145,9 @@ function PaymentSettingsPage() {
 					<Label htmlFor="pay-email">Contact email for payment proof</Label>
 					<Input
 						id="pay-email"
+						name="email"
+						autoComplete="email"
+						spellCheck={false}
 						type="email"
 						value={contactEmail}
 						onChange={(event) => setContactEmail(event.target.value)}

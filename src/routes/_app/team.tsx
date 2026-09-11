@@ -196,6 +196,9 @@ function TeamPage() {
 							<Label htmlFor="invite-email">Email</Label>
 							<Input
 								id="invite-email"
+								name="email"
+								autoComplete="email"
+								spellCheck={false}
 								type="email"
 								placeholder="colleague@company.com"
 								value={inviteEmail}

@@ -188,6 +188,8 @@ function ProfileTab({
 							<Label htmlFor="account-name">Name</Label>
 							<Input
 								id="account-name"
+								name="name"
+								autoComplete="name"
 								value={displayName}
 								onChange={(event) => setDisplayName(event.target.value)}
 								required
@@ -269,6 +271,9 @@ function ProfileTab({
 							<Label htmlFor="new-email">New email address</Label>
 							<Input
 								id="new-email"
+								name="email"
+								autoComplete="email"
+								spellCheck={false}
 								type="email"
 								value={newEmail}
 								onChange={(event) => setNewEmail(event.target.value)}
@@ -371,6 +376,8 @@ function ChangePasswordCard() {
 						<Label htmlFor="current-password">Current password</Label>
 						<Input
 							id="current-password"
+							name="currentPassword"
+							autoComplete="current-password"
 							type="password"
 							value={currentPassword}
 							onChange={(event) => setCurrentPassword(event.target.value)}
@@ -381,6 +388,8 @@ function ChangePasswordCard() {
 						<Label htmlFor="new-password">New password</Label>
 						<Input
 							id="new-password"
+							name="newPassword"
+							autoComplete="new-password"
 							type="password"
 							value={newPassword}
 							onChange={(event) => setNewPassword(event.target.value)}
@@ -392,6 +401,8 @@ function ChangePasswordCard() {
 						<Label htmlFor="confirm-password">Confirm new password</Label>
 						<Input
 							id="confirm-password"
+							name="confirmPassword"
+							autoComplete="new-password"
 							type="password"
 							value={confirmPassword}
 							onChange={(event) => setConfirmPassword(event.target.value)}
@@ -597,6 +608,8 @@ function TwoFactorCard({
 											<Label htmlFor="backup-regen-password">Password</Label>
 											<Input
 												id="backup-regen-password"
+												name="password"
+												autoComplete="current-password"
 												type="password"
 												value={password}
 												onChange={(event) => setPassword(event.target.value)}
@@ -639,6 +652,8 @@ function TwoFactorCard({
 											<Label htmlFor="disable-2fa-password">Password</Label>
 											<Input
 												id="disable-2fa-password"
+												name="password"
+												autoComplete="current-password"
 												type="password"
 												value={password}
 												onChange={(event) => setPassword(event.target.value)}
@@ -700,6 +715,9 @@ function TwoFactorCard({
 							<Label htmlFor="totp-code">6-digit code</Label>
 							<Input
 								id="totp-code"
+								name="code"
+								autoComplete="one-time-code"
+								spellCheck={false}
 								inputMode="numeric"
 								pattern="[0-9]*"
 								maxLength={6}
@@ -735,6 +753,8 @@ function TwoFactorCard({
 						<Label htmlFor="enable-2fa-password">Password</Label>
 						<Input
 							id="enable-2fa-password"
+							name="password"
+							autoComplete="current-password"
 							type="password"
 							value={password}
 							onChange={(event) => setPassword(event.target.value)}

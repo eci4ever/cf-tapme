@@ -74,6 +74,8 @@ function SignupPage() {
 					<Label htmlFor="name">Name</Label>
 					<Input
 						id="name"
+						name="name"
+						autoComplete="name"
 						placeholder="Jane Smith"
 						value={name}
 						onChange={(event) => setName(event.target.value)}
@@ -84,6 +86,9 @@ function SignupPage() {
 					<Label htmlFor="email">Email</Label>
 					<Input
 						id="email"
+						name="email"
+						autoComplete="email"
+						spellCheck={false}
 						type="email"
 						placeholder="you@company.com"
 						value={email}
@@ -95,6 +100,8 @@ function SignupPage() {
 					<Label htmlFor="password">Password</Label>
 					<Input
 						id="password"
+						name="password"
+						autoComplete="new-password"
 						type="password"
 						minLength={10}
 						value={password}

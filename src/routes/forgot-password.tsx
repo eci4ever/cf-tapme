@@ -107,6 +107,9 @@ function ForgotPasswordPage() {
 								<Label htmlFor="email">Email</Label>
 								<Input
 									id="email"
+									name="email"
+									autoComplete="email"
+									spellCheck={false}
 									type="email"
 									placeholder="you@company.com"
 									value={email}

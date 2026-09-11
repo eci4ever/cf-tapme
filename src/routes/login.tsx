@@ -105,6 +105,10 @@ function LoginPage() {
 						</Label>
 						<Input
 							id="two-factor-code"
+							name="code"
+							autoComplete="one-time-code"
+							inputMode="numeric"
+							spellCheck={false}
 							value={code}
 							onChange={(event) => setCode(event.target.value)}
 							required
@@ -138,6 +142,9 @@ function LoginPage() {
 					<Label htmlFor="email">Email</Label>
 					<Input
 						id="email"
+						name="email"
+						autoComplete="email"
+						spellCheck={false}
 						type="email"
 						placeholder="you@company.com"
 						value={email}
@@ -155,18 +162,20 @@ function LoginPage() {
 							Forgot password?
 						</Link>
 					</div>
-				<Input
-					id="password"
-					type="password"
-					value={password}
-					onChange={(event) => setPassword(event.target.value)}
-					required
-				/>
-			</div>
-			<Turnstile onToken={setCaptchaToken} />
-			<Button type="submit" disabled={pending || !captchaToken}>
-				{pending ? "Signing in..." : "Sign in"}
-			</Button>
+					<Input
+						id="password"
+						name="password"
+						autoComplete="current-password"
+						type="password"
+						value={password}
+						onChange={(event) => setPassword(event.target.value)}
+						required
+					/>
+				</div>
+				<Turnstile onToken={setCaptchaToken} />
+				<Button type="submit" disabled={pending || !captchaToken}>
+					{pending ? "Signing in..." : "Sign in"}
+				</Button>
 				<p className="text-center text-sm text-muted-foreground">
 					Don&apos;t have an account?{" "}
 					<Link

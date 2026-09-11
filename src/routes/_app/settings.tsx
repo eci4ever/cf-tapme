@@ -1338,6 +1338,8 @@ function SiteEditor({ site, onSaved }: { site: SiteRow; onSaved: () => void }) {
 					<Label htmlFor={`site-lat-${site.id}`}>Latitude</Label>
 					<Input
 						id={`site-lat-${site.id}`}
+						name="latitude"
+						inputMode="decimal"
 						value={lat}
 						onChange={(event) => setLat(event.target.value)}
 						placeholder="3.13900"
@@ -1348,6 +1350,8 @@ function SiteEditor({ site, onSaved }: { site: SiteRow; onSaved: () => void }) {
 					<Label htmlFor={`site-lng-${site.id}`}>Longitude</Label>
 					<Input
 						id={`site-lng-${site.id}`}
+						name="longitude"
+						inputMode="decimal"
 						value={lng}
 						onChange={(event) => setLng(event.target.value)}
 						placeholder="101.68685"

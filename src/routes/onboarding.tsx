@@ -217,6 +217,8 @@ function OnboardingPage() {
 								<Label htmlFor="company-name">Company name</Label>
 								<Input
 									id="company-name"
+									name="organization"
+									autoComplete="organization"
 									placeholder="Acme Inc"
 									value={name}
 									onChange={(event) => setName(event.target.value)}

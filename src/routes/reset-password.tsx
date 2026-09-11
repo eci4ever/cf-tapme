@@ -105,6 +105,8 @@ function ResetPasswordPage() {
 								<Label htmlFor="new-password">New password</Label>
 								<Input
 									id="new-password"
+									name="newPassword"
+									autoComplete="new-password"
 									type="password"
 									value={newPassword}
 									onChange={(event) => setNewPassword(event.target.value)}
@@ -116,6 +118,8 @@ function ResetPasswordPage() {
 								<Label htmlFor="confirm-password">Confirm new password</Label>
 								<Input
 									id="confirm-password"
+									name="confirmPassword"
+									autoComplete="new-password"
 									type="password"
 									value={confirmPassword}
 									onChange={(event) => setConfirmPassword(event.target.value)}
