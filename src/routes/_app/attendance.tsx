@@ -52,6 +52,7 @@ import {
 	type ClockInStatus,
 	type ClockOutStatus,
 	formatMinutes,
+	formatZonedDate,
 	type Schedule,
 	type Shift,
 } from "#/lib/schedule";
@@ -511,7 +512,16 @@ type AllAttendanceRow = {
 function AllAttendanceTab() {
 	const { date: dateParam } = Route.useSearch();
 	const navigate = Route.useNavigate();
-	const date = dateParam ?? new Date().toISOString().slice(0, 10);
+	// Default to the organization's zoned "today" from the server — a local
+	// UTC date is wrong before 08:00 MYT. Shares the page-level query cache.
+	const todayQuery = useQuery({
+		queryKey: ["attendance", "today"],
+		queryFn: getTodayAttendance,
+	});
+	const date =
+		dateParam ??
+		(todayQuery.data?.today || undefined) ??
+		formatZonedDate(new Date(), "Asia/Kuala_Lumpur");
 	const setDate = (value: string) =>
 		navigate({ search: (prev) => ({ ...prev, date: value }) });
 	const [editTarget, setEditTarget] = useState<AllAttendanceRow | null>(null);
