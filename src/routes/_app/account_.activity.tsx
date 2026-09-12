@@ -1,10 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import { listMyActivity } from "#/lib/auth.functions";
-import {
-	AUDIT_ACTION_LABELS,
-	AUDIT_TONE_CLASS,
-} from "#/lib/audit-labels";
 import {
 	Card,
 	CardContent,
@@ -12,13 +7,13 @@ import {
 	CardHeader,
 	CardTitle,
 } from "#/components/ui/card";
+import { AUDIT_ACTION_LABELS, AUDIT_TONE_CLASS } from "#/lib/audit-labels";
+import { listMyActivity } from "#/lib/auth.functions";
 
 export const Route = createFileRoute("/_app/account_/activity")({
 	staticData: { title: "My activity" },
 	component: ActivityPage,
 });
-
-
 
 function ActivityPage() {
 	const activityQuery = useQuery({
@@ -50,8 +45,7 @@ function ActivityPage() {
 						<ul className="flex flex-col divide-y">
 							{logs.map((log) => {
 								const config = {
-									label:
-										AUDIT_ACTION_LABELS[log.action]?.label ?? log.action,
+									label: AUDIT_ACTION_LABELS[log.action]?.label ?? log.action,
 									tone: AUDIT_TONE_CLASS[log.action] ?? "text-foreground",
 								};
 								return (

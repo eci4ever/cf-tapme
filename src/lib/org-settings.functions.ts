@@ -4,15 +4,15 @@ import { getDb } from "#/db";
 import {
 	employee,
 	member,
-	orgHoliday,
 	organization,
+	orgHoliday,
 	session,
 	user,
 } from "#/db/schema";
 import { logAudit } from "./audit.functions";
 import {
-	MALAYSIA_HOLIDAYS,
 	MALAYSIA_HOLIDAY_YEARS,
+	MALAYSIA_HOLIDAYS,
 	MALAYSIA_STATES,
 } from "./malaysia-holidays";
 import { parseTimeToMinutes } from "./schedule";
@@ -85,15 +85,12 @@ export const getOrgSettings = createServerFn({ method: "GET" }).handler(
 			})
 			.from(employee)
 			.where(eq(employee.organizationId, orgId));
-		const employeeIdByUserId = new Map(
-			employees
-				.filter((row) => row.userId && row.isActive)
-				.map((row) => [row.userId!, row.id]),
+		const activeLinks = employees.flatMap((row) =>
+			row.isActive && row.userId ? [[row.userId, row.id] as const] : [],
 		);
+		const employeeIdByUserId = new Map(activeLinks);
 		const userIdByEmployeeId = new Map(
-			employees
-				.filter((row) => row.userId && row.isActive)
-				.map((row) => [row.id, row.userId!]),
+			activeLinks.map(([userId, id]) => [id, userId] as const),
 		);
 		const subordinateCountByUserId = new Map<string, number>();
 		for (const row of employees) {
@@ -170,33 +167,33 @@ export const setMemberRole = createServerFn({ method: "POST" })
 		if (!targetMember) {
 			return { ok: false as const, reason: "Member not found" };
 		}
-	if (targetMember.role === "owner") {
-		return {
-			ok: false as const,
-			reason: "Use ownership transfer to change the owner's role",
-		};
-	}
-	if (role === "supervisor") {
-		const [linked] = await db
-			.select({ id: employee.id })
-			.from(employee)
-			.where(
-				and(
-					eq(employee.organizationId, orgId),
-					eq(employee.userId, data.userId),
-					eq(employee.isActive, true),
-				),
-			)
-			.limit(1);
-		if (!linked) {
+		if (targetMember.role === "owner") {
 			return {
 				ok: false as const,
-				reason:
-					"This user has no active employee record — add one on the Employees page first",
+				reason: "Use ownership transfer to change the owner's role",
 			};
 		}
-	}
-	await db
+		if (role === "supervisor") {
+			const [linked] = await db
+				.select({ id: employee.id })
+				.from(employee)
+				.where(
+					and(
+						eq(employee.organizationId, orgId),
+						eq(employee.userId, data.userId),
+						eq(employee.isActive, true),
+					),
+				)
+				.limit(1);
+			if (!linked) {
+				return {
+					ok: false as const,
+					reason:
+						"This user has no active employee record — add one on the Employees page first",
+				};
+			}
+		}
+		await db
 			.update(member)
 			.set({ role })
 			.where(
@@ -406,25 +403,28 @@ export const importStateHolidays = createServerFn({ method: "POST" })
 		}
 		const preset = MALAYSIA_HOLIDAYS[data.state]?.[data.year] ?? [];
 		const nameByDate = new Map(preset.map((entry) => [entry.date, entry.name]));
-		const dates = [...new Set(data.dates)]
-			.filter((date) => nameByDate.has(date))
+		const selected = [...new Set(data.dates)]
+			.flatMap((date) => {
+				const name = nameByDate.get(date);
+				return name ? [{ date, name }] : [];
+			})
 			.slice(0, 40);
-		if (dates.length === 0) {
+		if (selected.length === 0) {
 			return { ok: false as const, reason: "No valid holidays selected" };
 		}
 		// D1 caps bound parameters at 100 per statement (5 per holiday row),
 		// so insert in chunks
 		const inserted: { date: string }[] = [];
-		for (let i = 0; i < dates.length; i += 18) {
-			const chunk = dates.slice(i, i + 18);
+		for (let i = 0; i < selected.length; i += 18) {
+			const chunk = selected.slice(i, i + 18);
 			const rows = await getDb()
 				.insert(orgHoliday)
 				.values(
-					chunk.map((date) => ({
+					chunk.map((entry) => ({
 						id: crypto.randomUUID(),
 						organizationId: orgId,
-						name: nameByDate.get(date)!,
-						date,
+						name: entry.name,
+						date: entry.date,
 						createdAt: new Date(),
 					})),
 				)
@@ -444,7 +444,7 @@ export const importStateHolidays = createServerFn({ method: "POST" })
 		return {
 			ok: true as const,
 			inserted: inserted.length,
-			skipped: dates.length - inserted.length,
+			skipped: selected.length - inserted.length,
 		};
 	});
 

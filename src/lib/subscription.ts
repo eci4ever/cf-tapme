@@ -46,10 +46,7 @@ type SubscriptionOrg = {
 
 /** Lives here (not in billing.functions) so client-safe modules can import it
  * without pulling the server-only `#/db` graph into the client bundle. */
-export function statusFor(
-	org: SubscriptionOrg,
-	now: Date,
-): SubscriptionStatus {
+export function statusFor(org: SubscriptionOrg, now: Date): SubscriptionStatus {
 	if (org.plan === "free" || !org.paidUntil) {
 		return "active";
 	}

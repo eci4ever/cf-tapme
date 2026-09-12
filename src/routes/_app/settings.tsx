@@ -623,7 +623,7 @@ function ImportHolidaysDialog({
 		);
 		// recompute the default selection whenever the dialog reopens or the
 		// state/year pick changes
-	}, [open, state, year, existingDates]);
+	}, [open, existingDates, preset.filter]);
 
 	const importMutation = useMutation({
 		mutationFn: async () => {
@@ -1045,9 +1045,7 @@ function TransferOwnershipCard({
 										onClick={handleTransfer}
 										disabled={transferMutation.isPending}
 									>
-										{transferMutation.isPending
-											? "Transferring…"
-											: "Transfer"}
+										{transferMutation.isPending ? "Transferring…" : "Transfer"}
 									</Button>
 								</AlertDialogAction>
 							</AlertDialogFooter>

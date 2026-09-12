@@ -288,7 +288,7 @@ export const updateEmployee = createServerFn({ method: "POST" })
 					),
 				)
 				.limit(1);
-			if (!supervisorRow || !supervisorRow.isActive) {
+			if (!supervisorRow?.isActive) {
 				return {
 					ok: false as const,
 					reason: "Supervisor must be an active employee",
@@ -387,8 +387,15 @@ export const importEmployees = createServerFn({ method: "POST" })
 
 		for (const [index, cells] of allDataRows.entries()) {
 			const rowNo = index + headerOffset + 1;
-			const [name, employeeNo, position, shift, joinedAt, supervisorNo, siteName] =
-				cells.map((cell) => (cell ?? "").trim());
+			const [
+				name,
+				employeeNo,
+				position,
+				shift,
+				joinedAt,
+				supervisorNo,
+				siteName,
+			] = cells.map((cell) => (cell ?? "").trim());
 			if (!name) {
 				failures.push({ row: rowNo, reason: "Name is required" });
 				continue;
@@ -566,9 +573,7 @@ export const setEmployeeSchedule = createServerFn({ method: "POST" })
 			.where(eq(employee.id, data.employeeId));
 		const overrides = [
 			workDays !== null ? `days ${workDays}` : null,
-			workStartMinutes !== null
-				? `${data.startTime}-${data.endTime}`
-				: null,
+			workStartMinutes !== null ? `${data.startTime}-${data.endTime}` : null,
 			graceMinutes !== null ? `grace ${graceMinutes}m` : null,
 		].filter(Boolean);
 		await logAudit({
@@ -576,7 +581,8 @@ export const setEmployeeSchedule = createServerFn({ method: "POST" })
 			userId: session.user.id,
 			targetUserId: undefined,
 			action: "employees.schedule_set",
-			detail: overrides.length > 0 ? overrides.join(" · ") : "Reset to org default",
+			detail:
+				overrides.length > 0 ? overrides.join(" · ") : "Reset to org default",
 		});
 		return { ok: true as const };
 	});

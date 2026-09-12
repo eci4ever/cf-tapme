@@ -205,27 +205,28 @@ export function AttendanceHeatmap({ days }: { days: HeatDay[] }) {
 	const weeks = cells.length / 7;
 
 	// label bulan: lajur pertama setiap bulan baru
-	const weekMonths: (string | null)[] = [];
+	const weekMonths: { id: string; label: string | null }[] = [];
 	let lastMonth = "";
 	for (let week = 0; week < weeks; week += 1) {
 		const firstDay = cells
 			.slice(week * 7, week * 7 + 7)
 			.find((cell) => cell !== null);
 		if (!firstDay) {
-			weekMonths.push(null);
+			weekMonths.push({ id: `week-${week}`, label: null });
 			continue;
 		}
 		const month = firstDay.date.slice(5, 7);
 		if (month !== lastMonth) {
 			lastMonth = month;
-			weekMonths.push(
-				new Date(`${firstDay.date}T00:00:00Z`).toLocaleDateString("en-US", {
-					month: "short",
-					timeZone: "UTC",
-				}),
-			);
+			weekMonths.push({
+				id: firstDay.date,
+				label: new Date(`${firstDay.date}T00:00:00Z`).toLocaleDateString(
+					"en-US",
+					{ month: "short", timeZone: "UTC" },
+				),
+			});
 		} else {
-			weekMonths.push(null);
+			weekMonths.push({ id: `week-${week}`, label: null });
 		}
 	}
 
@@ -241,9 +242,12 @@ export function AttendanceHeatmap({ days }: { days: HeatDay[] }) {
 			<p className="text-xs text-muted-foreground">{summary}</p>
 			<div className="flex flex-col gap-1.5 overflow-x-auto pb-1">
 				<div className="flex gap-[3px] pl-6">
-					{weekMonths.map((label, index) => (
-						<span key={index} className="w-3 text-[9px] text-muted-foreground">
-							{label ?? ""}
+					{weekMonths.map((entry) => (
+						<span
+							key={entry.id}
+							className="w-3 text-[9px] text-muted-foreground"
+						>
+							{entry.label ?? ""}
 						</span>
 					))}
 				</div>
@@ -268,6 +272,7 @@ export function AttendanceHeatmap({ days }: { days: HeatDay[] }) {
 									/>
 								</DayDetailPopover>
 							) : (
+								// biome-ignore lint/suspicious/noArrayIndexKey: placeholder cells have positional identity only
 								<div key={`pad-${index}`} className="size-3" />
 							),
 						)}

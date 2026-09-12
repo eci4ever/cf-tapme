@@ -1,13 +1,13 @@
 import { env } from "cloudflare:workers";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeaders } from "@tanstack/react-start/server";
-import { getCurrentSession } from "./session";
-import { listUserAuditLogs } from "./audit.functions";
-import { alias } from "drizzle-orm/sqlite-core";
 import { and, desc, eq, isNull, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/sqlite-core";
 import { getDb } from "#/db";
 import { auditLog, notification, organization, user } from "#/db/schema";
+import { listUserAuditLogs } from "./audit.functions";
 import { getAuth } from "./auth";
+import { getCurrentSession } from "./session";
 
 export const getSession = createServerFn({ method: "GET" }).handler(
 	async () => {
@@ -58,13 +58,10 @@ export const getAuthMethods = createServerFn({ method: "GET" }).handler(
 	async () => {
 		return {
 			google: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
-			debugEnvKeys: Object.keys(env).filter((key) =>
-				key.includes("GOOGLE"),
-			),
+			debugEnvKeys: Object.keys(env).filter((key) => key.includes("GOOGLE")),
 		};
 	},
 );
-
 
 export const listMyActivity = createServerFn({ method: "GET" }).handler(
 	async () => {
@@ -129,25 +126,24 @@ export const markNotificationRead = createServerFn({ method: "POST" })
 		return { ok: true as const };
 	});
 
-export const markAllNotificationsRead = createServerFn({ method: "POST" }).handler(
-	async () => {
-		const session = await getCurrentSession();
-		if (!session) {
-			return { ok: false as const };
-		}
-		await getDb()
-			.update(notification)
-			.set({ readAt: new Date() })
-			.where(
-				and(
-					eq(notification.userId, session.user.id),
-					isNull(notification.readAt),
-				),
-			);
-		return { ok: true as const };
-	},
-);
-
+export const markAllNotificationsRead = createServerFn({
+	method: "POST",
+}).handler(async () => {
+	const session = await getCurrentSession();
+	if (!session) {
+		return { ok: false as const };
+	}
+	await getDb()
+		.update(notification)
+		.set({ readAt: new Date() })
+		.where(
+			and(
+				eq(notification.userId, session.user.id),
+				isNull(notification.readAt),
+			),
+		);
+	return { ok: true as const };
+});
 
 export const PLATFORM_AUDIT_ACTION_KEYS = [
 	"account.sign_in",
@@ -172,7 +168,10 @@ export const PLATFORM_AUDIT_ACTION_KEYS = [
 ];
 
 export const listPlatformAuditLogs = createServerFn({ method: "GET" })
-	.validator((input: { organizationId?: string | null; action?: string | null }) => input)
+	.validator(
+		(input: { organizationId?: string | null; action?: string | null }) =>
+			input,
+	)
 	.handler(async ({ data }) => {
 		const session = await getCurrentSession();
 		if (!session?.user.role?.split(",").includes("admin")) {

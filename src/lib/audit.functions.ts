@@ -15,15 +15,17 @@ export type AuditInput = {
 /** Append an audit trail entry. Fails silently — logging must never break operations. */
 export async function logAudit(input: AuditInput): Promise<void> {
 	try {
-		await getDb().insert(auditLog).values({
-			id: crypto.randomUUID(),
-			organizationId: input.organizationId ?? null,
-			userId: input.userId,
-			targetUserId: input.targetUserId ?? null,
-			action: input.action,
-			detail: input.detail ?? null,
-			createdAt: new Date(),
-		});
+		await getDb()
+			.insert(auditLog)
+			.values({
+				id: crypto.randomUUID(),
+				organizationId: input.organizationId ?? null,
+				userId: input.userId,
+				targetUserId: input.targetUserId ?? null,
+				action: input.action,
+				detail: input.detail ?? null,
+				createdAt: new Date(),
+			});
 	} catch (error) {
 		console.error("[audit] failed to write entry", error);
 	}
@@ -49,7 +51,6 @@ export async function listUserAuditLogs(
 		.limit(limit);
 }
 
-
 export const listMyActivity = createServerFn({ method: "GET" }).handler(
 	async () => {
 		const session = await getCurrentSession();
@@ -59,4 +60,3 @@ export const listMyActivity = createServerFn({ method: "GET" }).handler(
 		return listUserAuditLogs(session.user.id, 50);
 	},
 );
-

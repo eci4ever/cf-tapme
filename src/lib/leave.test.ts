@@ -62,9 +62,9 @@ describe("countWorkingDays", () => {
 		expect(
 			countWorkingDays("2026-08-24", "2026-08-30", WEEKDAYS, holidays),
 		).toBe(4);
-		expect(countWorkingDays("2026-08-27", "2026-08-27", WEEKDAYS, holidays)).toBe(
-			0,
-		);
+		expect(
+			countWorkingDays("2026-08-27", "2026-08-27", WEEKDAYS, holidays),
+		).toBe(0);
 	});
 
 	it("ignores holidays falling on non-work days", () => {

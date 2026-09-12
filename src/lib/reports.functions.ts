@@ -8,8 +8,13 @@ import {
 	leaveRequest,
 	leaveType,
 } from "#/db/schema";
-import { countWorkingDays, deriveIssues, enumerateDays, weekdayOf } from "./leave";
 import { getHolidayDates } from "./holidays";
+import {
+	countWorkingDays,
+	deriveIssues,
+	enumerateDays,
+	weekdayOf,
+} from "./leave";
 import { formatMinutes, formatZonedDate, getZonedParts } from "./schedule";
 import { getOrgMemberContext } from "./session";
 
@@ -249,8 +254,7 @@ export const getMonthlyReport = createServerFn({ method: "GET" })
 			for (const row of usedRanges) {
 				const start =
 					row.startDate < balanceYearStart ? balanceYearStart : row.startDate;
-				const end =
-					row.endDate > balanceYearEnd ? balanceYearEnd : row.endDate;
+				const end = row.endDate > balanceYearEnd ? balanceYearEnd : row.endDate;
 				if (start > end) {
 					continue;
 				}
@@ -301,16 +305,16 @@ export const getMonthlyReport = createServerFn({ method: "GET" })
 			for (const target of targets) {
 				const recs = recordsByEmployee.get(target.id) ?? [];
 				const targetWorkDays = workDaysByEmployee.get(target.id) ?? workDays;
-			const issues = deriveIssues({
-				records: recs,
-				leaveCoveredDates:
-					leaveCoveredByEmployee.get(target.id) ?? new Set<string>(),
-				workDays: targetWorkDays,
-				holidayDates,
-				rangeStart: monthStart,
-				rangeEnd: monthEnd,
-				today,
-			});
+				const issues = deriveIssues({
+					records: recs,
+					leaveCoveredDates:
+						leaveCoveredByEmployee.get(target.id) ?? new Set<string>(),
+					workDays: targetWorkDays,
+					holidayDates,
+					rangeStart: monthStart,
+					rangeEnd: monthEnd,
+					today,
+				});
 				const leaveDays: Record<string, number> = {};
 				const balanceRemaining: Record<string, number | null> = {};
 				for (const type of types) {
@@ -359,7 +363,9 @@ export const getMonthlyReport = createServerFn({ method: "GET" })
 						: formatMinutes(
 								getZonedParts(timestamp, timezone).minutesSinceMidnight,
 							);
-				const recordByDate = new Map(recs.map((record) => [record.date, record]));
+				const recordByDate = new Map(
+					recs.map((record) => [record.date, record]),
+				);
 				const leaveCovered =
 					leaveCoveredByEmployee.get(target.id) ?? new Set<string>();
 				const daily: {
@@ -395,9 +401,9 @@ export const getMonthlyReport = createServerFn({ method: "GET" })
 										hours:
 											record.clockOut !== null
 												? Math.round(
-														((record.clockOut.getTime() -
+														(record.clockOut.getTime() -
 															record.clockIn.getTime()) /
-															360_000) /
+															360_000 /
 															10,
 													)
 												: null,
@@ -421,8 +427,8 @@ export const getMonthlyReport = createServerFn({ method: "GET" })
 							hours:
 								record.clockOut !== null
 									? Math.round(
-											((record.clockOut.getTime() - record.clockIn.getTime()) /
-												360_000) /
+											(record.clockOut.getTime() - record.clockIn.getTime()) /
+												360_000 /
 												10,
 										)
 									: null,
@@ -431,7 +437,10 @@ export const getMonthlyReport = createServerFn({ method: "GET" })
 						continue;
 					}
 					if (date >= today) {
-						daily.push({ ...base, status: date === today ? "today" : "upcoming" });
+						daily.push({
+							...base,
+							status: date === today ? "today" : "upcoming",
+						});
 						continue;
 					}
 					daily.push({ ...base, status: "absent" });

@@ -5,13 +5,13 @@ import {
 	employee,
 	leaveRequest,
 	leaveType,
-	orgHoliday,
 	organization,
+	orgHoliday,
 } from "#/db/schema";
-import { countWorkingDays, isValidDateKey, rangesOverlap } from "./leave";
-import { getHolidayDates } from "./holidays";
-import { notifyEmployee, notifySupervisors } from "./notify";
 import { logAudit } from "./audit.functions";
+import { getHolidayDates } from "./holidays";
+import { countWorkingDays, isValidDateKey, rangesOverlap } from "./leave";
+import { notifyEmployee, notifySupervisors } from "./notify";
 import { getOrgMemberContext } from "./session";
 
 async function getMemberContext() {
@@ -250,7 +250,11 @@ async function validateAndQuote(options: {
 	if (startDate > endDate) {
 		return { ok: false, reason: "Start date must be before end date" };
 	}
-	const orgId = (await getMemberContext())!.orgId;
+	const context = await getMemberContext();
+	if (!context) {
+		return { ok: false, reason: "You must be signed in to apply for leave" };
+	}
+	const orgId = context.orgId;
 	const [org] = await getDb()
 		.select({ workDays: organization.workDays })
 		.from(organization)
@@ -262,9 +266,7 @@ async function validateAndQuote(options: {
 		.from(employee)
 		.where(and(eq(employee.id, employeeId), eq(employee.organizationId, orgId)))
 		.limit(1);
-	const workDays = (applicant?.workDays ?? org.workDays)
-		.split(",")
-		.map(Number);
+	const workDays = (applicant?.workDays ?? org.workDays).split(",").map(Number);
 	const holidayDates = await getHolidayDates(orgId);
 	const days = countWorkingDays(startDate, endDate, workDays, holidayDates);
 	if (days <= 0) {
@@ -332,7 +334,12 @@ async function validateAndQuote(options: {
 				workDays,
 				holidayDates,
 			);
-			parts.push({ year: yearKey, portion, used, remaining: type.quotaDays - used });
+			parts.push({
+				year: yearKey,
+				portion,
+				used,
+				remaining: type.quotaDays - used,
+			});
 			if (portion > type.quotaDays - used) {
 				overdrawn = yearKey;
 			}
@@ -363,9 +370,7 @@ export const getLeaveOverview = createServerFn({ method: "GET" }).handler(
 			.where(eq(leaveType.organizationId, context.orgId))
 			.orderBy(leaveType.name);
 		const year = todayKey(context.org.timezone).slice(0, 4);
-		const workDays = (
-			context.employee?.workDays ?? context.org.workDays
-		)
+		const workDays = (context.employee?.workDays ?? context.org.workDays)
 			.split(",")
 			.map(Number);
 		const holidayDates = await getHolidayDates(context.orgId);
@@ -436,7 +441,7 @@ export const applyLeave = createServerFn({ method: "POST" })
 					),
 				)
 				.limit(1);
-			if (!target || !target.isActive) {
+			if (!target?.isActive) {
 				return { ok: false as const, reason: "Employee not found" };
 			}
 			employeeId = target.id;
@@ -751,7 +756,8 @@ export const getOrgLeaveWidgets = createServerFn({ method: "GET" }).handler(
 			.limit(3);
 		// Monday-based week containing today
 		const [year, month, day] = today.split("-").map(Number);
-		const weekday = (new Date(Date.UTC(year, month - 1, day)).getUTCDay() + 6) % 7;
+		const weekday =
+			(new Date(Date.UTC(year, month - 1, day)).getUTCDay() + 6) % 7;
 		const weekStart = new Date(Date.UTC(year, month - 1, day - weekday))
 			.toISOString()
 			.slice(0, 10);

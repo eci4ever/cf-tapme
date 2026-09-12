@@ -117,8 +117,18 @@ export const NO_SCHEDULE_OVERRIDE: ScheduleOverride = {
 
 export function resolveSchedule(
 	override: ScheduleOverride | null,
-	org: { workDays: string; workStartMinutes: number; workEndMinutes: number; graceMinutes: number },
-): { workDays: number[]; workStartMinutes: number; workEndMinutes: number; graceMinutes: number } {
+	org: {
+		workDays: string;
+		workStartMinutes: number;
+		workEndMinutes: number;
+		graceMinutes: number;
+	},
+): {
+	workDays: number[];
+	workStartMinutes: number;
+	workEndMinutes: number;
+	graceMinutes: number;
+} {
 	const effective = override ?? NO_SCHEDULE_OVERRIDE;
 	return {
 		workDays: (effective.workDays ?? org.workDays)

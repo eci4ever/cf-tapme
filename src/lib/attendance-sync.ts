@@ -1,12 +1,8 @@
 import { and, eq, inArray } from "drizzle-orm";
 import { getDb } from "#/db";
-import {
-	attendance,
-	attendanceIssue,
-	leaveRequest,
-} from "#/db/schema";
-import { deriveIssues } from "./leave";
+import { attendance, attendanceIssue, leaveRequest } from "#/db/schema";
 import { getHolidayDates } from "./holidays";
+import { deriveIssues } from "./leave";
 import { formatZonedDate, type ScheduleOverride } from "./schedule";
 
 export async function syncIssues(options: {

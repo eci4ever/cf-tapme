@@ -9,21 +9,21 @@ import {
 	topupRequest,
 	user,
 } from "#/db/schema";
+import { logAudit } from "./audit.functions";
 import { sendEmail } from "./email";
 import { notifyOrgAdmins } from "./notify";
-import { logAudit } from "./audit.functions";
 import { getCurrentSession } from "./session";
 import {
 	addMonths,
-	GRACE_MS,
 	formatRm,
+	GRACE_MS,
 	type LedgerType,
 	PAID_PLANS,
 	PLANS,
 	type PlanId,
 	SUBSCRIPTION_MONTHS,
-	statusFor,
 	type SubscriptionStatus,
+	statusFor,
 } from "./subscription";
 
 export type SubscriptionState = {
@@ -461,7 +461,11 @@ async function notifyPlatformAdmins(
 		.from(user)
 		.where(like(user.role, "%admin%"));
 	for (const admin of admins) {
-		await sendEmail({ to: admin.email, subject, html: `<div style="font-family:Arial,sans-serif;">${bodyHtml}</div>` });
+		await sendEmail({
+			to: admin.email,
+			subject,
+			html: `<div style="font-family:Arial,sans-serif;">${bodyHtml}</div>`,
+		});
 	}
 }
 
@@ -546,32 +550,29 @@ export const listMyTopupRequests = createServerFn({ method: "GET" }).handler(
 	},
 );
 
-export const listPendingTopupRequests = createServerFn({ method: "GET" }).handler(
-	async () => {
-		const session = await getCurrentSession();
-		if (!session?.user.role?.split(",").includes("admin")) {
-			throw new Error("Forbidden");
-		}
-		return getDb()
-			.select({
-				id: topupRequest.id,
-				organizationId: topupRequest.organizationId,
-				orgName: organization.name,
-				amountSen: topupRequest.amountSen,
-				paymentRef: topupRequest.paymentRef,
-				requestedByName: user.name,
-				createdAt: topupRequest.createdAt,
-			})
-			.from(topupRequest)
-			.innerJoin(
-				organization,
-				eq(topupRequest.organizationId, organization.id),
-			)
-			.innerJoin(user, eq(topupRequest.requestedBy, user.id))
-			.where(eq(topupRequest.status, "pending"))
-			.orderBy(desc(topupRequest.createdAt));
-	},
-);
+export const listPendingTopupRequests = createServerFn({
+	method: "GET",
+}).handler(async () => {
+	const session = await getCurrentSession();
+	if (!session?.user.role?.split(",").includes("admin")) {
+		throw new Error("Forbidden");
+	}
+	return getDb()
+		.select({
+			id: topupRequest.id,
+			organizationId: topupRequest.organizationId,
+			orgName: organization.name,
+			amountSen: topupRequest.amountSen,
+			paymentRef: topupRequest.paymentRef,
+			requestedByName: user.name,
+			createdAt: topupRequest.createdAt,
+		})
+		.from(topupRequest)
+		.innerJoin(organization, eq(topupRequest.organizationId, organization.id))
+		.innerJoin(user, eq(topupRequest.requestedBy, user.id))
+		.where(eq(topupRequest.status, "pending"))
+		.orderBy(desc(topupRequest.createdAt));
+});
 
 export const decideTopupRequest = createServerFn({ method: "POST" })
 	.validator(
@@ -645,7 +646,10 @@ export const decideTopupRequest = createServerFn({ method: "POST" })
 			organizationId: request.organizationId,
 			userId: session.user.id,
 			targetUserId: request.requestedBy,
-			action: data.decision === "approved" ? "billing.topup_approved" : "billing.topup_rejected",
+			action:
+				data.decision === "approved"
+					? "billing.topup_approved"
+					: "billing.topup_rejected",
 			detail: `${formatRm(request.amountSen)} (ref: ${request.paymentRef})${note ? ` — ${note}` : ""}`,
 		});
 		return { ok: true as const };
@@ -731,7 +735,10 @@ export const savePlatformPaymentSettings = createServerFn({ method: "POST" })
 				};
 			}
 			if (trimmed.length > QR_MAX_CHARS) {
-				return { ok: false as const, reason: "QR image too large (max ~300KB)" };
+				return {
+					ok: false as const,
+					reason: "QR image too large (max ~300KB)",
+				};
 			}
 			qrBase64 = trimmed;
 		}

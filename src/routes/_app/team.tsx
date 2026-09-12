@@ -305,7 +305,7 @@ function TeamPage() {
 										<TableCell>{member.email}</TableCell>
 										<TableCell>
 											<div className="flex flex-wrap items-center gap-2">
-												<RoleBadge role={member.role} />
+												<RoleBadge roleKey={member.role} />
 												{member.role === "supervisor" ? (
 													<span className="text-xs text-muted-foreground">
 														{member.subordinateCount} subordinate

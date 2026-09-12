@@ -3,9 +3,9 @@ import { Link, useNavigate, useRouteContext } from "@tanstack/react-router";
 import {
 	ChevronsUpDown,
 	CircleUserRound,
+	History,
 	LogOut,
 	VenetianMask,
-	History,
 } from "lucide-react";
 import { RoleBadge } from "#/components/role-badge";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
@@ -35,8 +35,8 @@ export function NavUser() {
 
 	const badges = (
 		<>
-			{orgRole ? <RoleBadge role={orgRole} /> : null}
-			{isPlatformAdmin ? <RoleBadge role="platform" /> : null}
+			{orgRole ? <RoleBadge roleKey={orgRole} /> : null}
+			{isPlatformAdmin ? <RoleBadge roleKey="platform" /> : null}
 		</>
 	);
 

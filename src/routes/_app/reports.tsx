@@ -337,7 +337,7 @@ function ReportsPage() {
 		if (!data) {
 			return;
 		}
-		const escape = (value: unknown) => {
+		const escapeCsv = (value: unknown) => {
 			const text = String(value ?? "");
 			return /[",\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 		};
@@ -356,7 +356,7 @@ function ReportsPage() {
 				`${type.name} (balance)`,
 			]),
 		];
-		const lines = [header.map(escape).join(",")];
+		const lines = [header.map(escapeCsv).join(",")];
 		for (const row of rows) {
 			lines.push(
 				[
@@ -374,7 +374,7 @@ function ReportsPage() {
 						row.balanceRemaining[type.id] ?? "unlimited",
 					]),
 				]
-					.map(escape)
+					.map(escapeCsv)
 					.join(","),
 			);
 		}
@@ -776,9 +776,9 @@ function ReportsPage() {
 											</tr>
 										</thead>
 										<tbody>
-											{visibleIssues.map((issue, index) => (
+											{visibleIssues.map((issue) => (
 												<tr
-													key={`${issue.employeeNo}-${issue.date}-${issue.type}-${index}`}
+													key={`${issue.employeeNo}-${issue.date}-${issue.type}`}
 													className="border-b last:border-0"
 												>
 													<td className="py-1.5 pr-3">

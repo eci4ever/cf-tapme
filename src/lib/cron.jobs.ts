@@ -65,7 +65,7 @@ async function runAbsentSweep(now: Date): Promise<number> {
 			const monthStart =
 				today.slice(8) === "01"
 					? // 1st of the month — sweep the previous month's last day too
-						new Date(
+						`${new Date(
 							Date.UTC(
 								Number(today.slice(0, 4)),
 								Number(today.slice(5, 7)) - 2,
@@ -73,7 +73,7 @@ async function runAbsentSweep(now: Date): Promise<number> {
 							),
 						)
 							.toISOString()
-							.slice(0, 7) + "-01"
+							.slice(0, 7)}-01`
 					: undefined;
 			await syncIssues({
 				orgId: org.id,
@@ -150,7 +150,9 @@ async function runReminders(
 				clockOut: {
 					from: schedule.workEndMinutes + CLOCK_OUT_REMINDER_AFTER_MINUTES,
 					to:
-						schedule.workEndMinutes + CLOCK_OUT_REMINDER_AFTER_MINUTES + TICK_MINUTES,
+						schedule.workEndMinutes +
+						CLOCK_OUT_REMINDER_AFTER_MINUTES +
+						TICK_MINUTES,
 				},
 			}))
 			.filter(

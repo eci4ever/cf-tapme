@@ -27,8 +27,8 @@ const ROLE_STYLES: Record<string, { label: string; className: string }> = {
  * Colored badge for a user's role. Unknown or plain roles (e.g. "member")
  * render nothing — absence of a badge means an ordinary member.
  */
-export function RoleBadge({ role }: { role: string }) {
-	const style = ROLE_STYLES[role];
+export function RoleBadge({ roleKey }: { roleKey: string }) {
+	const style = ROLE_STYLES[roleKey];
 	if (!style) {
 		return null;
 	}

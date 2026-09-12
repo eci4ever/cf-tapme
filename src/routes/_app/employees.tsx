@@ -619,9 +619,11 @@ function ImportCsvDialog({
 									<table className="w-full text-xs">
 										<tbody>
 											{preview.sample.map((cells, index) => (
+												// biome-ignore lint/suspicious/noArrayIndexKey: CSV preview rows are positional by definition
 												<tr key={index} className="border-b last:border-b-0">
 													{cells.map((cell, cellIndex) => (
 														<td
+															// biome-ignore lint/suspicious/noArrayIndexKey: cells are positional within the row
 															key={cellIndex}
 															className="max-w-40 truncate px-2 py-1"
 														>

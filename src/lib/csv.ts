@@ -43,9 +43,7 @@ export function parseCsv(text: string): string[][] {
 
 // The expected header's first column is "Name" — skip the first row when present
 export function hasHeaderRow(rows: string[][]): boolean {
-	return (
-		rows.length > 0 && (rows[0][0] ?? "").trim().toLowerCase() === "name"
-	);
+	return rows.length > 0 && (rows[0][0] ?? "").trim().toLowerCase() === "name";
 }
 
 export function dataRows(rows: string[][]): string[][] {

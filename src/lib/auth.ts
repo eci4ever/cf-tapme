@@ -1,15 +1,15 @@
 import { env } from "cloudflare:workers";
 import { APIError, betterAuth } from "better-auth";
-import { createAuthMiddleware } from "better-auth/api";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { createAuthMiddleware } from "better-auth/api";
 import { admin, captcha, organization, twoFactor } from "better-auth/plugins";
 import { tanstackStartCookies } from "better-auth/tanstack-start";
 import { asc, eq } from "drizzle-orm";
 import { getDb } from "#/db";
 import * as schema from "#/db/schema";
 import { member } from "#/db/schema";
-import { sendEmail } from "./email";
 import { logAudit } from "./audit.functions";
+import { sendEmail } from "./email";
 
 function createAuth() {
 	const baseURL = env.BETTER_AUTH_URL || "http://localhost:3000";
@@ -22,7 +22,8 @@ function createAuth() {
 		emailAndPassword: {
 			enabled: true,
 			minPasswordLength: 10,
-			sendResetPassword: async ({ user, url }) => {				const brand = env.EMAIL_BRAND_NAME || "TapMe";
+			sendResetPassword: async ({ user, url }) => {
+				const brand = env.EMAIL_BRAND_NAME || "TapMe";
 				await sendEmail({
 					to: user.email,
 					subject: `Reset your password on ${brand}`,
@@ -73,8 +74,15 @@ function createAuth() {
 		hooks: {
 			after: createAuthMiddleware(async (ctx) => {
 				try {
-					const returned = (ctx as { returned?: unknown }).returned as { user?: { id?: string }; token?: unknown } | APIError | undefined;
-					if (returned && typeof returned === "object" && "statusCode" in returned) {
+					const returned = (ctx as { returned?: unknown }).returned as
+						| { user?: { id?: string }; token?: unknown }
+						| APIError
+						| undefined;
+					if (
+						returned &&
+						typeof returned === "object" &&
+						"statusCode" in returned
+					) {
 						return; // failed request — only log successes
 					}
 					const sessionUser = ctx.context?.session?.user?.id;
@@ -88,51 +96,76 @@ function createAuth() {
 					}
 					switch (ctx.path) {
 						case "/sign-out":
-							await logAudit({ userId, action: "account.sign_out", detail: "Signed out" });
+							await logAudit({
+								userId,
+								action: "account.sign_out",
+								detail: "Signed out",
+							});
 							break;
 						case "/change-password":
-							await logAudit({ userId, action: "account.password_changed", detail: "Password changed" });
+							await logAudit({
+								userId,
+								action: "account.password_changed",
+								detail: "Password changed",
+							});
 							break;
 						case "/change-email":
-							await logAudit({ userId, action: "account.email_changed", detail: "Email change requested" });
+							await logAudit({
+								userId,
+								action: "account.email_changed",
+								detail: "Email change requested",
+							});
 							break;
 						case "/two-factor/enable":
-							await logAudit({ userId, action: "account.2fa_enabled", detail: "Two-factor authentication enabled" });
+							await logAudit({
+								userId,
+								action: "account.2fa_enabled",
+								detail: "Two-factor authentication enabled",
+							});
 							break;
 						case "/two-factor/disable":
-							await logAudit({ userId, action: "account.2fa_disabled", detail: "Two-factor authentication disabled" });
+							await logAudit({
+								userId,
+								action: "account.2fa_disabled",
+								detail: "Two-factor authentication disabled",
+							});
 							break;
 					}
 				} catch (error) {
 					console.error("[audit] after-hook failed", error);
 				}
 			}),
-			before: createAuthMiddleware(async (ctx: { path: string; body?: { password?: unknown; newPassword?: unknown } }) => {
-				if (
-					ctx.path !== "/sign-up/email" &&
-					ctx.path !== "/change-password" &&
-					ctx.path !== "/reset-password"
-				) {
-					return;
-				}
-				const password =
-					(ctx.body as { password?: unknown; newPassword?: unknown })
-						?.password ??
-					(ctx.body as { newPassword?: unknown })?.newPassword;
-				if (typeof password !== "string") {
-					return;
-				}
-				if (password.length < 10) {
-					throw new APIError("BAD_REQUEST", {
-						message: "Password must be at least 10 characters",
-					});
-				}
-				if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
-					throw new APIError("BAD_REQUEST", {
-						message: "Password must contain both letters and numbers",
-					});
-				}
-			}),
+			before: createAuthMiddleware(
+				async (ctx: {
+					path: string;
+					body?: { password?: unknown; newPassword?: unknown };
+				}) => {
+					if (
+						ctx.path !== "/sign-up/email" &&
+						ctx.path !== "/change-password" &&
+						ctx.path !== "/reset-password"
+					) {
+						return;
+					}
+					const password =
+						(ctx.body as { password?: unknown; newPassword?: unknown })
+							?.password ??
+						(ctx.body as { newPassword?: unknown })?.newPassword;
+					if (typeof password !== "string") {
+						return;
+					}
+					if (password.length < 10) {
+						throw new APIError("BAD_REQUEST", {
+							message: "Password must be at least 10 characters",
+						});
+					}
+					if (!/[A-Za-z]/.test(password) || !/\d/.test(password)) {
+						throw new APIError("BAD_REQUEST", {
+							message: "Password must contain both letters and numbers",
+						});
+					}
+				},
+			),
 		},
 		...(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET
 			? {
@@ -174,8 +207,7 @@ function createAuth() {
 			captcha({
 				provider: "cloudflare-turnstile",
 				secretKey:
-					env.TURNSTILE_SECRET_KEY ||
-					"1x0000000000000000000000000000000AA",
+					env.TURNSTILE_SECRET_KEY || "1x0000000000000000000000000000000AA",
 			}),
 			admin(),
 			organization({

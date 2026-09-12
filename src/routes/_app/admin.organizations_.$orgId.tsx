@@ -365,7 +365,7 @@ function OrgDetailPage() {
 											{entry.email}
 										</TableCell>
 										<TableCell>
-											<RoleBadge role={entry.role} />
+											<RoleBadge roleKey={entry.role} />
 										</TableCell>
 										<TableCell>{formatDate(entry.joinedAt)}</TableCell>
 									</TableRow>

@@ -29,10 +29,7 @@ describe("parseCsv", () => {
 	});
 
 	it("keeps a final line without newline", () => {
-		expect(parseCsv("a\nb")).toEqual([
-			["a"],
-			["b"],
-		]);
+		expect(parseCsv("a\nb")).toEqual([["a"], ["b"]]);
 	});
 });
 

@@ -1,7 +1,13 @@
 import { env } from "cloudflare:workers";
 import { and, eq, inArray } from "drizzle-orm";
 import { getDb } from "#/db";
-import { employee, member, notification, organization, user } from "#/db/schema";
+import {
+	employee,
+	member,
+	notification,
+	organization,
+	user,
+} from "#/db/schema";
 import { sendEmail } from "./email";
 
 async function orgEmailNotificationsEnabled(orgId: string): Promise<boolean> {
@@ -45,15 +51,17 @@ async function pushInApp(
 ): Promise<void> {
 	if (!userId) return;
 	try {
-		await getDb().insert(notification).values({
-			id: crypto.randomUUID(),
-			organizationId: orgId,
-			userId,
-			title,
-			body: summary ?? null,
-			linkPath: linkPath ?? null,
-			createdAt: new Date(),
-		});
+		await getDb()
+			.insert(notification)
+			.values({
+				id: crypto.randomUUID(),
+				organizationId: orgId,
+				userId,
+				title,
+				body: summary ?? null,
+				linkPath: linkPath ?? null,
+				createdAt: new Date(),
+			});
 	} catch {
 		// in-app delivery must never break the triggering operation
 	}
@@ -98,7 +106,14 @@ export async function notifyEmployee(
 		.from(employee)
 		.where(and(eq(employee.id, employeeId), eq(employee.organizationId, orgId)))
 		.limit(1);
-	await notifyUser(orgId, row?.userId ?? null, subject, bodyHtml, linkPath, summary);
+	await notifyUser(
+		orgId,
+		row?.userId ?? null,
+		subject,
+		bodyHtml,
+		linkPath,
+		summary,
+	);
 }
 
 /** Notify the org's owners and admins (email respects the org's email toggle). */
@@ -147,7 +162,14 @@ export async function notifySupervisors(
 			.where(eq(employee.id, row.supervisorId))
 			.limit(1);
 		if (supervisor?.userId) {
-			await notifyUser(orgId, supervisor.userId, subject, bodyHtml, linkPath, summary);
+			await notifyUser(
+				orgId,
+				supervisor.userId,
+				subject,
+				bodyHtml,
+				linkPath,
+				summary,
+			);
 			return;
 		}
 	}

@@ -74,6 +74,6 @@ export async function getOrgMemberContext(): Promise<OrgMemberContext | null> {
 		orgId,
 		org,
 		role: memberRow?.role ?? null,
-		employee: linked && linked.isActive ? linked : null,
+		employee: linked?.isActive ? linked : null,
 	};
 }

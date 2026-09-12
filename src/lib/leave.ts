@@ -73,8 +73,15 @@ export function deriveIssues(options: {
 	rangeEnd: string;
 	today: string;
 }): DerivedIssue[] {
-	const { records, leaveCoveredDates, workDays, holidayDates, rangeStart, rangeEnd, today } =
-		options;
+	const {
+		records,
+		leaveCoveredDates,
+		workDays,
+		holidayDates,
+		rangeStart,
+		rangeEnd,
+		today,
+	} = options;
 	const issues: DerivedIssue[] = [];
 	const recordByDate = new Map(records.map((record) => [record.date, record]));
 	for (const dateKey of enumerateDays(rangeStart, rangeEnd)) {

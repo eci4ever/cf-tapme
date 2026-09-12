@@ -12,7 +12,11 @@ export default {
 	// runtime supplies (request, env, ctx) — forward only the request.
 	fetch: (request, _env, _ctx) => serverEntry.fetch(request),
 
-	async scheduled(controller: ScheduledController, _env: Cloudflare.Env, ctx: ExecutionContext) {
+	async scheduled(
+		controller: ScheduledController,
+		_env: Cloudflare.Env,
+		ctx: ExecutionContext,
+	) {
 		console.log(`Cron triggered: ${controller.cron}`);
 		ctx.waitUntil(
 			runCron(new Date())

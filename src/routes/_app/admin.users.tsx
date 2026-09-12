@@ -262,7 +262,7 @@ function UsersAdminPage() {
 			header: "Role",
 			cell: ({ row }) =>
 				row.original.role?.split(",").includes("admin") ? (
-					<RoleBadge role="platform" />
+					<RoleBadge roleKey="platform" />
 				) : null,
 		},
 		{

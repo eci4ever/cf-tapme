@@ -11,11 +11,11 @@ import {
 	user,
 	workSite,
 } from "#/db/schema";
-import { enumerateDays } from "./leave";
-import { getHolidayDates } from "./holidays";
 import { syncIssues } from "./attendance-sync";
-import { notifyEmployee, notifySupervisors } from "./notify";
 import { logAudit } from "./audit.functions";
+import { getHolidayDates } from "./holidays";
+import { enumerateDays } from "./leave";
+import { notifyEmployee, notifySupervisors } from "./notify";
 import {
 	type ClockInStatus,
 	type ClockOutStatus,
@@ -43,7 +43,10 @@ type OrgRow = {
 	timezone: string;
 };
 
-function scheduleFromOrg(org: OrgRow, override: ScheduleOverride | null = null): Schedule {
+function scheduleFromOrg(
+	org: OrgRow,
+	override: ScheduleOverride | null = null,
+): Schedule {
 	return {
 		...resolveSchedule(override, org),
 		timezone: org.timezone,
@@ -87,7 +90,7 @@ async function getOrgAndEmployee() {
 			),
 		)
 		.limit(1);
-	const activeEmployee = linked && linked.isActive ? linked : null;
+	const activeEmployee = linked?.isActive ? linked : null;
 	return {
 		session,
 		org,
@@ -189,10 +192,7 @@ async function resolveGeofenceContext(
 		})
 		.from(workSite)
 		.where(
-			and(
-				eq(workSite.id, employeeSiteId),
-				eq(workSite.organizationId, orgId),
-			),
+			and(eq(workSite.id, employeeSiteId), eq(workSite.organizationId, orgId)),
 		)
 		.limit(1);
 	if (!site) {
@@ -287,15 +287,17 @@ export const getTodayAttendance = createServerFn({ method: "GET" }).handler(
 
 export const clockIn = createServerFn({ method: "POST" })
 	.validator(
-		(input:
-			| {
-					latitude?: number;
-					longitude?: number;
-					accuracy?: number | null;
-					siteId?: string;
-					note?: string;
-			  }
-			| undefined) => input,
+		(
+			input:
+				| {
+						latitude?: number;
+						longitude?: number;
+						accuracy?: number | null;
+						siteId?: string;
+						note?: string;
+				  }
+				| undefined,
+		) => input,
 	)
 	.handler(async ({ data }) => {
 		const { org, schedule, employee: linked } = await getOrgAndEmployee();
@@ -424,14 +426,16 @@ export const clockIn = createServerFn({ method: "POST" })
 
 export const clockOut = createServerFn({ method: "POST" })
 	.validator(
-		(input:
-			| {
-					latitude?: number;
-					longitude?: number;
-					accuracy?: number | null;
-					note?: string;
-			  }
-			| undefined) => input,
+		(
+			input:
+				| {
+						latitude?: number;
+						longitude?: number;
+						accuracy?: number | null;
+						note?: string;
+				  }
+				| undefined,
+		) => input,
 	)
 	.handler(async ({ data }) => {
 		const { org, schedule, employee: linked } = await getOrgAndEmployee();
@@ -962,7 +966,6 @@ async function requireIssueApprover(): Promise<
 	};
 }
 
-
 export const listMyIssues = createServerFn({ method: "GET" }).handler(
 	async () => {
 		const context = await getOrgMemberContext();
@@ -1056,7 +1059,7 @@ export const submitJustification = createServerFn({ method: "POST" })
 			"Justification submitted for review",
 			`
 				<p>A justification was submitted for an attendance issue dated <strong>${issue.date}</strong>.</p>
-				<p style="color:#555;">\"${justification}\"</p>
+				<p style="color:#555;">"${justification}"</p>
 			`,
 			"/attendance",
 			`Justification submitted for attendance issue on ${issue.date}`,
@@ -1082,7 +1085,10 @@ export const listIssuesForReview = createServerFn({ method: "GET" }).handler(
 		if (!scope) {
 			return { issues: [], scope: "none" as const };
 		}
-		const context = (await getOrgMemberContext())!;
+		const context = await getOrgMemberContext();
+		if (!context) {
+			return { issues: [], scope: "none" as const };
+		}
 		const scopedEmployees =
 			scope.scope === "all"
 				? await getDb()
@@ -1143,8 +1149,11 @@ export const listIssuesForReview = createServerFn({ method: "GET" }).handler(
 
 export const verifyIssue = createServerFn({ method: "POST" })
 	.validator(
-		(input: { issueId: string; decision: "verified" | "rejected"; note?: string }) =>
-			input,
+		(input: {
+			issueId: string;
+			decision: "verified" | "rejected";
+			note?: string;
+		}) => input,
 	)
 	.handler(async ({ data }) => {
 		const context = await getOrgMemberContext();

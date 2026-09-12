@@ -26,8 +26,11 @@ export const MALAYSIA_STATES = [
 
 export const MALAYSIA_HOLIDAY_YEARS = [2026, 2027] as const;
 
-export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> = {
-	"Johor": {
+export const MALAYSIA_HOLIDAYS: Record<
+	string,
+	Record<number, HolidayEntry[]>
+> = {
+	Johor: {
 		2026: [
 			{ date: "2026-02-01", name: "Thaipusam" },
 			{ date: "2026-02-02", name: "Thaipusam Holiday" },
@@ -36,7 +39,10 @@ export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> =
 			{ date: "2026-02-19", name: "Awal Ramadan" },
 			{ date: "2026-03-21", name: "Hari Raya Aidilfitri" },
 			{ date: "2026-03-22", name: "Hari Raya Aidilfitri Holiday" },
-			{ date: "2026-03-23", name: "Sultan of Johor's Birthday · Hari Raya Aidilfitri Holiday" },
+			{
+				date: "2026-03-23",
+				name: "Sultan of Johor's Birthday · Hari Raya Aidilfitri Holiday",
+			},
 			{ date: "2026-05-01", name: "Labour Day" },
 			{ date: "2026-05-27", name: "Hari Raya Haji" },
 			{ date: "2026-05-31", name: "Wesak Day" },
@@ -72,7 +78,7 @@ export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> =
 			{ date: "2027-12-25", name: "Christmas Day" },
 		],
 	},
-	"Kedah": {
+	Kedah: {
 		2026: [
 			{ date: "2026-01-17", name: "Israk and Mikraj" },
 			{ date: "2026-02-01", name: "Thaipusam" },
@@ -120,7 +126,7 @@ export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> =
 			{ date: "2027-12-26", name: "Israk and Mikraj" },
 		],
 	},
-	"Kelantan": {
+	Kelantan: {
 		2026: [
 			{ date: "2026-02-17", name: "Chinese New Year" },
 			{ date: "2026-02-18", name: "Chinese New Year Holiday" },
@@ -169,7 +175,7 @@ export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> =
 			{ date: "2027-12-26", name: "Christmas Holiday" },
 		],
 	},
-	"Melaka": {
+	Melaka: {
 		2026: [
 			{ date: "2026-01-01", name: "New Year's Day" },
 			{ date: "2026-02-17", name: "Chinese New Year" },
@@ -262,7 +268,7 @@ export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> =
 			{ date: "2027-12-27", name: "Israk and Mikraj Holiday" },
 		],
 	},
-	"Pahang": {
+	Pahang: {
 		2026: [
 			{ date: "2026-01-01", name: "New Year's Day" },
 			{ date: "2026-02-17", name: "Chinese New Year" },
@@ -308,7 +314,7 @@ export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> =
 			{ date: "2027-12-25", name: "Christmas Day" },
 		],
 	},
-	"Penang": {
+	Penang: {
 		2026: [
 			{ date: "2026-01-01", name: "New Year's Day" },
 			{ date: "2026-02-01", name: "Thaipusam" },
@@ -357,7 +363,7 @@ export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> =
 			{ date: "2027-12-25", name: "Christmas Day" },
 		],
 	},
-	"Perak": {
+	Perak: {
 		2026: [
 			{ date: "2026-01-01", name: "New Year's Day" },
 			{ date: "2026-02-01", name: "Thaipusam" },
@@ -404,7 +410,7 @@ export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> =
 			{ date: "2027-12-25", name: "Christmas Day" },
 		],
 	},
-	"Perlis": {
+	Perlis: {
 		2026: [
 			{ date: "2026-01-17", name: "Israk and Mikraj" },
 			{ date: "2026-02-17", name: "Chinese New Year" },
@@ -452,7 +458,7 @@ export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> =
 			{ date: "2027-12-27", name: "Israk and Mikraj Holiday" },
 		],
 	},
-	"Sabah": {
+	Sabah: {
 		2026: [
 			{ date: "2026-01-01", name: "New Year's Day" },
 			{ date: "2026-02-17", name: "Chinese New Year" },
@@ -501,7 +507,7 @@ export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> =
 			{ date: "2027-12-25", name: "Christmas Day" },
 		],
 	},
-	"Sarawak": {
+	Sarawak: {
 		2026: [
 			{ date: "2026-01-01", name: "New Year's Day" },
 			{ date: "2026-02-17", name: "Chinese New Year" },
@@ -513,7 +519,10 @@ export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> =
 			{ date: "2026-05-01", name: "Labour Day" },
 			{ date: "2026-05-27", name: "Hari Raya Haji" },
 			{ date: "2026-05-31", name: "Wesak Day" },
-			{ date: "2026-06-01", name: "Hari Gawai · Agong's Birthday · Wesak Day Holiday" },
+			{
+				date: "2026-06-01",
+				name: "Hari Gawai · Agong's Birthday · Wesak Day Holiday",
+			},
 			{ date: "2026-06-02", name: "Hari Gawai Holiday" },
 			{ date: "2026-06-17", name: "Awal Muharram" },
 			{ date: "2026-07-22", name: "Sarawak Day" },
@@ -547,7 +556,7 @@ export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> =
 			{ date: "2027-12-25", name: "Christmas Day" },
 		],
 	},
-	"Selangor": {
+	Selangor: {
 		2026: [
 			{ date: "2026-01-01", name: "New Year's Day" },
 			{ date: "2026-02-01", name: "Thaipusam" },
@@ -594,7 +603,7 @@ export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> =
 			{ date: "2027-12-25", name: "Christmas Day" },
 		],
 	},
-	"Terengganu": {
+	Terengganu: {
 		2026: [
 			{ date: "2026-01-17", name: "Israk and Mikraj" },
 			{ date: "2026-01-18", name: "Israk and Mikraj Holiday" },
@@ -650,7 +659,10 @@ export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> =
 		2026: [
 			{ date: "2026-01-01", name: "New Year's Day" },
 			{ date: "2026-02-01", name: "Thaipusam · Federal Territory Day" },
-			{ date: "2026-02-02", name: "Federal Territory Day Holiday · Thaipusam Holiday" },
+			{
+				date: "2026-02-02",
+				name: "Federal Territory Day Holiday · Thaipusam Holiday",
+			},
 			{ date: "2026-02-17", name: "Chinese New Year" },
 			{ date: "2026-02-18", name: "Chinese New Year Holiday" },
 			{ date: "2026-03-07", name: "Nuzul Al-Quran" },
@@ -693,7 +705,7 @@ export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> =
 			{ date: "2027-12-25", name: "Christmas Day" },
 		],
 	},
-	"Labuan": {
+	Labuan: {
 		2026: [
 			{ date: "2026-01-01", name: "New Year's Day" },
 			{ date: "2026-02-01", name: "Federal Territory Day" },
@@ -741,11 +753,14 @@ export const MALAYSIA_HOLIDAYS: Record<string, Record<number, HolidayEntry[]>> =
 			{ date: "2027-12-25", name: "Christmas Day" },
 		],
 	},
-	"Putrajaya": {
+	Putrajaya: {
 		2026: [
 			{ date: "2026-01-01", name: "New Year's Day" },
 			{ date: "2026-02-01", name: "Thaipusam · Federal Territory Day" },
-			{ date: "2026-02-02", name: "Federal Territory Day Holiday · Thaipusam Holiday" },
+			{
+				date: "2026-02-02",
+				name: "Federal Territory Day Holiday · Thaipusam Holiday",
+			},
 			{ date: "2026-02-17", name: "Chinese New Year" },
 			{ date: "2026-02-18", name: "Chinese New Year Holiday" },
 			{ date: "2026-03-07", name: "Nuzul Al-Quran" },

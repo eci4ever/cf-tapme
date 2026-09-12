@@ -36,15 +36,13 @@ export const listOrgMembers = createServerFn({ method: "GET" }).handler(
 			})
 			.from(employee)
 			.where(eq(employee.organizationId, activeOrganizationId));
+		const activeUserIds = employees.flatMap((row) =>
+			row.isActive && row.userId ? [row.userId] : [],
+		);
 		const userIdByEmployeeId = new Map(
 			employees
-				.filter((row) => row.userId && row.isActive)
-				.map((row) => [row.id, row.userId!]),
-		);
-		const activeEmployeeUserIds = new Set(
-			employees
-				.filter((row) => row.userId && row.isActive)
-				.map((row) => row.userId!),
+				.filter((row) => row.isActive && row.userId !== null)
+				.map((row) => [row.id, row.userId as string]),
 		);
 		const subordinateCountByUserId = new Map<string, number>();
 		for (const row of employees) {
@@ -59,7 +57,7 @@ export const listOrgMembers = createServerFn({ method: "GET" }).handler(
 		}
 		return members.map((entry) => ({
 			...entry,
-			hasEmployeeRecord: activeEmployeeUserIds.has(entry.userId),
+			hasEmployeeRecord: activeUserIds.includes(entry.userId),
 			subordinateCount: subordinateCountByUserId.get(entry.userId) ?? 0,
 		}));
 	},

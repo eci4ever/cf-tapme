@@ -2,8 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { and, eq, gte, inArray, lte } from "drizzle-orm";
 import { getDb } from "#/db";
 import { attendance, employee, leaveRequest } from "#/db/schema";
-import { enumerateDays } from "./leave";
 import { getHolidayDates } from "./holidays";
+import { enumerateDays } from "./leave";
 import { formatZonedDate } from "./schedule";
 import { getOrgMemberContext } from "./session";
 
@@ -197,8 +197,7 @@ export const getOrgAttendanceTrend = createServerFn({ method: "GET" }).handler(
 			);
 		const leaveDatesByEmployee = new Map<string, string[]>();
 		for (const leave of leaves) {
-			const start =
-				leave.startDate < rangeStart ? rangeStart : leave.startDate;
+			const start = leave.startDate < rangeStart ? rangeStart : leave.startDate;
 			const end = leave.endDate > today ? today : leave.endDate;
 			const list = leaveDatesByEmployee.get(leave.employeeId) ?? [];
 			list.push(...enumerateDays(start, end));
