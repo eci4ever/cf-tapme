@@ -30,7 +30,7 @@ export function PageShell({
 				<div className="mx-auto w-full max-w-6xl min-w-0">
 					<header className="flex h-16 shrink-0 items-center gap-2 max-md:mt-[env(safe-area-inset-top)]">
 						<div className="flex items-center gap-2 px-4">
-							<SidebarTrigger className="-ml-1" />
+							<SidebarTrigger className="-ml-1 size-11" />
 							<Separator
 								orientation="vertical"
 								className="mr-2 data-[orientation=vertical]:h-4"

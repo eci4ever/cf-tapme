@@ -121,6 +121,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+  html {
+    /* mobile: no gray tap flash, no double-tap zoom delay on rapid taps */
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
   @media (prefers-reduced-motion: no-preference) {
     html {
       scroll-behavior: smooth;
