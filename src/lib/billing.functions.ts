@@ -11,7 +11,7 @@ import {
 	user,
 } from "#/db/schema";
 import { logAudit } from "./audit.functions";
-import { billplzConfigured, createBill } from "./billplz";
+import { billplzConfigured, billplzMode, createBill } from "./billplz";
 import { getBillplzCollectionId } from "./billplz.webhook";
 import { sendEmail } from "./email";
 import { notifyOrgAdmins } from "./notify";
@@ -801,6 +801,7 @@ export const getPaymentInstructions = createServerFn({ method: "GET" }).handler(
 			qrBase64: settings?.qrBase64 ?? null,
 			billplzEnabled:
 				billplzConfigured() && Boolean(settings?.billplzCollectionId),
+			billplzSandbox: billplzMode() !== "live",
 			billplzFeeSen: settings?.billplzFeeSen ?? 125,
 		};
 	},

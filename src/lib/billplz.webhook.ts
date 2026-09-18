@@ -7,6 +7,8 @@ import {
 	topupRequest,
 } from "#/db/schema";
 import { verifyXSignature } from "./billplz";
+import { notifyOrgAdmins } from "./notify";
+import { formatRm } from "./subscription";
 
 /**
  * Billplz callback + redirect endpoints. Handled directly in the Worker
@@ -121,6 +123,25 @@ export async function handleBillplzCallback(
 	console.log(
 		`[billplz] credited ${topup.amountSen} sen to org ${topup.organizationId} (bill ${billId})`,
 	);
+	const feeSen = topup.billAmountSen
+		? topup.billAmountSen - topup.amountSen
+		: 0;
+	// Fire-and-forget receipt: must never fail the callback (Billplz would
+	// retry a non-200 and the credit is already idempotent, but keep it clean).
+	try {
+		await notifyOrgAdmins(
+			topup.organizationId,
+			`Top-up received — ${formatRm(topup.amountSen)}`,
+			`<p>Your credit top-up of <strong>${formatRm(topup.amountSen)}</strong> was paid via Billplz and added to your organization balance.</p>` +
+				(feeSen > 0
+					? `<p style="color:#555;">Total charged: ${formatRm(topup.billAmountSen ?? 0)} (includes ${formatRm(feeSen)} Billplz fee)</p>`
+					: ""),
+			"/billing",
+			"Paid via Billplz",
+		);
+	} catch (error) {
+		console.error("[billplz] receipt notification failed:", error);
+	}
 	return new Response("OK", { status: 200 });
 }
 

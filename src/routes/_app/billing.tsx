@@ -581,6 +581,11 @@ function PaymentInstructionsCard() {
 						Transfer by manual bank transfer, then submit a top-up request with
 						your payment reference
 					</CardDescription>
+					{instructions?.billplzEnabled && instructions?.billplzSandbox ? (
+						<Badge className="border-amber-300 bg-amber-100 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/15 dark:text-amber-400">
+							🧪 Sandbox — payments are simulated
+						</Badge>
+					) : null}
 				</div>
 				<RequestTopupButton />
 			</CardHeader>
