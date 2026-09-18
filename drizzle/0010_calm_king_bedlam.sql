@@ -1,1 +1,0 @@
-ALTER TABLE `organization` ADD `email_notifications` integer DEFAULT true NOT NULL;

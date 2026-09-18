@@ -36,7 +36,7 @@
 			"binding": "DB",
 			"database_name": "cf-tapme-db",
 			"database_id": "fc99657d-1127-4e89-b473-7568d1120d66",
-			"migrations_dir": "drizzle"
+			"migrations_dir": "migration"
 		}
 	]
 	/**

@@ -57,13 +57,13 @@ beforeAll(async () => {
 	// not enough — two migrations can share a number).
 	const journal = JSON.parse(
 		await fs.readFile(
-			path.join(rootDir, "drizzle", "meta", "_journal.json"),
+			path.join(rootDir, "migration", "meta", "_journal.json"),
 			"utf8",
 		),
 	) as { entries: Array<{ idx: number; tag: string }> };
 	for (const { tag } of journal.entries.sort((a, b) => a.idx - b.idx)) {
 		const content = await fs.readFile(
-			path.join(rootDir, "drizzle", `${tag}.sql`),
+			path.join(rootDir, "migration", `${tag}.sql`),
 			"utf8",
 		);
 		for (const statement of content.split("--> statement-breakpoint")) {
