@@ -879,7 +879,7 @@ function SessionsTab({ currentToken }: { currentToken: string }) {
 					<TableBody>
 						{sessionsQuery.isPending ? (
 							<TableRow>
-								<TableCell colSpan={5}>Loading...</TableCell>
+								<TableCell colSpan={5}>Loading…</TableCell>
 							</TableRow>
 						) : (
 							sessions.map((sessionItem) => {

@@ -117,7 +117,7 @@ export function OrgSwitcher() {
 					>
 						<DropdownMenuLabel>Organizations</DropdownMenuLabel>
 						{isPending ? (
-							<DropdownMenuItem disabled>Loading...</DropdownMenuItem>
+							<DropdownMenuItem disabled>Loading…</DropdownMenuItem>
 						) : (
 							(organizations ?? []).map((org) => (
 								<DropdownMenuItem
