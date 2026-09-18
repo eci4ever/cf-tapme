@@ -130,6 +130,11 @@ export const topupRequest = sqliteTable(
 		status: text("status").notNull().default("pending"),
 		// "manual" (bank transfer, admin-approved) or "billplz" (auto on callback)
 		method: text("method").notNull().default("manual"),
+		// "credit" (default) or "plan_renewal" — a Billplz bill that extends
+		// paid_until directly instead of crediting the balance
+		purpose: text("purpose").notNull().default("credit"),
+		planId: text("plan_id"),
+		months: integer("months"),
 		billId: text("bill_id"),
 		billUrl: text("bill_url"),
 		// total charged to the payer = credit amount + Billplz fee (null for

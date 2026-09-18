@@ -11,8 +11,13 @@ import {
 	user,
 } from "#/db/schema";
 import { logAudit } from "./audit.functions";
-import { billplzConfigured, billplzMode, createBill } from "./billplz";
-import { getBillplzCollectionId } from "./billplz.webhook";
+import {
+	billplzConfigured,
+	billplzMode,
+	createBill,
+	getBill,
+} from "./billplz";
+import { finalizePaidBill, getBillplzCollectionId } from "./billplz.webhook";
 import { sendEmail } from "./email";
 import { notifyOrgAdmins } from "./notify";
 import { getCurrentSession } from "./session";
@@ -630,6 +635,151 @@ export const createBillplzTopup = createServerFn({ method: "POST" })
 		return { ok: true as const, billUrl: bill.url };
 	});
 
+/**
+ * Create a Billplz bill that renews the current paid plan directly — the
+ * callback extends paid_until without touching the credit balance.
+ */
+export const createBillplzRenewal = createServerFn({ method: "POST" })
+	.validator((input: { planId: PlanId; months: number }) => input)
+	.handler(async ({ data }) => {
+		const { orgId, session } = await requireOrgBillingAccess();
+		const planId = data.planId;
+		const months = Math.round(Number(data.months));
+		if (!PAID_PLANS.includes(planId)) {
+			return { ok: false as const, reason: "Choose a paid plan" };
+		}
+		if (!SUBSCRIPTION_MONTHS.includes(months as (typeof SUBSCRIPTION_MONTHS)[number])) {
+			return { ok: false as const, reason: "Invalid renewal duration" };
+		}
+		if (!billplzConfigured()) {
+			return {
+				ok: false as const,
+				reason: "Billplz is not configured yet — contact the administrator",
+			};
+		}
+		const collectionId = await getBillplzCollectionId();
+		if (!collectionId) {
+			return {
+				ok: false as const,
+				reason: "Billplz is not configured yet — contact the administrator",
+			};
+		}
+		const db = getDb();
+		const [existing] = await db
+			.select({ id: topupRequest.id })
+			.from(topupRequest)
+			.where(
+				and(
+					eq(topupRequest.organizationId, orgId),
+					eq(topupRequest.status, "pending"),
+				),
+			)
+			.limit(1);
+		if (existing) {
+			return {
+				ok: false as const,
+				reason: "You already have a pending top-up request",
+			};
+		}
+		const priceSen = PLANS[planId].priceSen * months;
+		const settings = await readPaymentSettings();
+		const feeSen = settings?.billplzFeeSen ?? 125;
+		const billAmountSen = priceSen + feeSen;
+		const base = (env.BETTER_AUTH_URL || "http://localhost:3000").replace(
+			/\/$/,
+			"",
+		);
+		let bill;
+		try {
+			bill = await createBill({
+				collectionId,
+				email: session.user.email,
+				name: session.user.name,
+				amountSen: billAmountSen,
+				description: `${orgId} — ${PLANS[planId].name} × ${months} month(s)`,
+				callbackUrl: `${base}/api/billplz/callback`,
+				redirectUrl: `${base}/api/billplz/redirect`,
+				skipDetails: true,
+			});
+		} catch (error) {
+			console.error("[billplz] renewal bill failed:", error);
+			return {
+				ok: false as const,
+				reason: "Could not start the Billplz payment — try again shortly",
+			};
+		}
+		const now = new Date();
+		await db.insert(topupRequest).values({
+			id: crypto.randomUUID(),
+			organizationId: orgId,
+			amountSen: priceSen,
+			paymentRef: bill.id,
+			status: "pending",
+			method: "billplz",
+			purpose: "plan_renewal",
+			planId,
+			months,
+			billId: bill.id,
+			billUrl: bill.url,
+			billAmountSen,
+			requestedBy: session.user.id,
+			createdAt: now,
+			updatedAt: now,
+		});
+		return { ok: true as const, billUrl: bill.url };
+	});
+
+/**
+ * Reconcile a pending Billplz request straight from the gateway — covers
+ * callbacks that never arrived. Safe to call repeatedly.
+ */
+export const checkBillplzStatus = createServerFn({ method: "POST" })
+	.validator((input: { requestId: string }) => input)
+	.handler(async ({ data }) => {
+		const { orgId } = await requireOrgBillingAccess();
+		const [topup] = await getDb()
+			.select()
+			.from(topupRequest)
+			.where(
+				and(
+					eq(topupRequest.id, data.requestId),
+					eq(topupRequest.organizationId, orgId),
+				),
+			)
+			.limit(1);
+		if (!topup || topup.method !== "billplz" || !topup.billId) {
+			return { ok: false as const, reason: "Request not found" };
+		}
+		if (topup.status !== "pending") {
+			return { ok: true as const, paid: true as const, state: topup.status };
+		}
+		let bill;
+		try {
+			bill = await getBill(topup.billId);
+		} catch (error) {
+			console.error("[billplz] check status failed:", error);
+			return {
+				ok: false as const,
+				reason: "Could not reach Billplz — try again shortly",
+			};
+		}
+		if (!bill.paid || bill.state !== "paid") {
+			return { ok: true as const, paid: false as const, state: bill.state };
+		}
+		const expectedSen = topup.billAmountSen ?? topup.amountSen;
+		if (bill.amountSen !== null && bill.amountSen !== expectedSen) {
+			console.error(
+				`[billplz] reconcile ${topup.billId} amount mismatch: got ${bill.amountSen}, expected ${expectedSen}`,
+			);
+			return {
+				ok: false as const,
+				reason: "Payment amount does not match the request",
+			};
+		}
+		await finalizePaidBill(topup, topup.billId);
+		return { ok: true as const, paid: true as const, state: "paid" };
+	});
+
 export const listMyTopupRequests = createServerFn({ method: "GET" }).handler(
 	async () => {
 		const { orgId } = await requireOrgBillingAccess();
@@ -640,6 +790,9 @@ export const listMyTopupRequests = createServerFn({ method: "GET" }).handler(
 				paymentRef: topupRequest.paymentRef,
 				status: topupRequest.status,
 				method: topupRequest.method,
+				purpose: topupRequest.purpose,
+				planId: topupRequest.planId,
+				months: topupRequest.months,
 				billUrl: topupRequest.billUrl,
 				decisionNote: topupRequest.decisionNote,
 				createdAt: topupRequest.createdAt,

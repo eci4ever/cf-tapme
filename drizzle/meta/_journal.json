@@ -127,6 +127,13 @@
       "when": 1789701959350,
       "tag": "0017_billplz_fee_passthrough",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "6",
+      "when": 1789705206329,
+      "tag": "0018_billplz_renewal",
+      "breakpoints": true
     }
   ]
 }

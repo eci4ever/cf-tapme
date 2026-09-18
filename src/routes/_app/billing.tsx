@@ -39,6 +39,8 @@ import {
 	TableRow,
 } from "#/components/ui/table";
 import {
+	checkBillplzStatus,
+	createBillplzRenewal,
 	createBillplzTopup,
 	getBillingOverview,
 	getPaymentInstructions,
@@ -98,6 +100,11 @@ function BillingPage() {
 		ledger: overviewQuery.data.ledger as LedgerRow[],
 	};
 	const { state, ledger } = overview;
+	const instructionsQuery = useQuery({
+		queryKey: ["billing", "payment-instructions"],
+		queryFn: getPaymentInstructions,
+	});
+	const billplzEnabled = instructionsQuery.data?.billplzEnabled ?? false;
 
 	return (
 		<div className="flex flex-col gap-4">
@@ -155,6 +162,8 @@ function BillingPage() {
 							key={planId}
 							planId={planId}
 							state={state}
+							billplzEnabled={billplzEnabled}
+							billplzFeeSen={instructionsQuery.data?.billplzFeeSen ?? 125}
 							onDone={() =>
 								queryClient.invalidateQueries({ queryKey: ["billing"] })
 							}
@@ -235,10 +244,14 @@ function BillingPage() {
 function PlanCard({
 	planId,
 	state,
+	billplzEnabled,
+	billplzFeeSen,
 	onDone,
 }: {
 	planId: PlanId;
 	state: SubscriptionState;
+	billplzEnabled: boolean;
+	billplzFeeSen: number;
 	onDone: () => void;
 }) {
 	const queryClient = useQueryClient();
@@ -273,6 +286,26 @@ function PlanCard({
 			toast.error(error.message);
 		},
 	});
+	const renewalMutation = useMutation({
+		mutationFn: async (input: { planId: PlanId; months: number }) => {
+			const result = await createBillplzRenewal({ data: input });
+			if (!result.ok) {
+				throw new Error(result.reason);
+			}
+			return result;
+		},
+		onSuccess: (result) => {
+			queryClient.invalidateQueries({ queryKey: ["billing"] });
+			// Hand off to the Billplz payment page; the callback extends
+			// paid_until directly — no balance movement.
+			window.location.href = result.billUrl;
+		},
+		onError: (error) => toast.error(error.message),
+	});
+
+	function handleRenewViaBillplz() {
+		renewalMutation.mutate({ planId, months });
+	}
 
 	function handleSubscribe() {
 		subscribeMutation.mutate({ planId, months });
@@ -357,6 +390,22 @@ function PlanCard({
 			>
 				{buttonLabel}
 			</Button>
+			{billplzEnabled && isCurrent && planId !== "free" ? (
+				<Button
+					type="button"
+					variant="outline"
+					disabled={renewalMutation.isPending || subscribeMutation.isPending}
+					onClick={handleRenewViaBillplz}
+				>
+					<CreditCard />
+					{renewalMutation.isPending
+						? "Opening Billplz…"
+						: (() => {
+								const total = plan.priceSen * months + billplzFeeSen;
+								return `Renew via Billplz — ${formatRm(total)}`;
+							})()}
+				</Button>
+			) : null}
 		</div>
 	);
 }
@@ -367,6 +416,9 @@ type TopupRequestRow = {
 	paymentRef: string;
 	status: string;
 	method: string;
+	purpose: string;
+	planId: string | null;
+	months: number | null;
 	billUrl: string | null;
 	decisionNote: string | null;
 	createdAt: Date | string;
@@ -643,11 +695,35 @@ function PaymentInstructionsCard() {
 }
 
 function TopupRequestsCard() {
+	const queryClient = useQueryClient();
 	const requestsQuery = useQuery({
 		queryKey: ["billing", "topup-requests"],
 		queryFn: listMyTopupRequests,
 	});
 	const requests = (requestsQuery.data ?? []) as TopupRequestRow[];
+	const checkStatusMutation = useMutation({
+		mutationFn: async (requestId: string) => {
+			const result = await checkBillplzStatus({ data: { requestId } });
+			if (!result.ok) {
+				throw new Error(result.reason);
+			}
+			return result;
+		},
+		onSuccess: (result) => {
+			queryClient.invalidateQueries({ queryKey: ["billing"] });
+			if (result.paid) {
+				toast.success("Payment confirmed — applied");
+			} else {
+				toast.info(`Not paid yet (state: ${result.state || "unknown"})`);
+			}
+		},
+		onError: (error) => toast.error(error.message),
+	});
+	const checkingId = checkStatusMutation.isPending
+		? checkStatusMutation.variables
+		: null;
+	const checkStatus = (requestId: string) =>
+		checkStatusMutation.mutate(requestId);
 	if (requestsQuery.isPending) {
 		return null;
 	}
@@ -685,7 +761,11 @@ function TopupRequestsCard() {
 										{request.paymentRef}
 									</TableCell>
 									<TableCell>
-										{request.method === "billplz" ? "Billplz" : "Manual"}
+										{request.method === "billplz"
+											? request.purpose === "plan_renewal"
+												? `Billplz — ${request.planId ?? "plan"} × ${request.months ?? 1}m`
+												: "Billplz"
+											: "Manual"}
 									</TableCell>
 									<TableCell>
 										<Badge
@@ -708,6 +788,20 @@ function TopupRequestsCard() {
 											>
 												Resume payment
 											</a>
+										) : null}
+										{request.method === "billplz" &&
+										request.status === "pending" ? (
+											<Button
+												variant="ghost"
+												size="xs"
+												className="mt-1 -ml-2"
+												disabled={checkingId === request.id}
+												onClick={() => checkStatus(request.id)}
+											>
+												{checkingId === request.id
+													? "Checking…"
+													: "Check status"}
+											</Button>
 										) : null}
 									</TableCell>
 									<TableCell className="text-muted-foreground">

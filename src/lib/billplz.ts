@@ -120,6 +120,27 @@ export async function createBill(input: CreateBillInput): Promise<CreatedBill> {
 	return { id: bill.id, url: bill.url };
 }
 
+/** Fetch the current bill state from the gateway (reconciliation path). */
+export async function getBill(
+	billId: string,
+): Promise<{ paid: boolean; state: string; amountSen: number | null }> {
+	const response = await apiRequest("GET", `/v3/bills/${billId}`);
+	const text = await response.text();
+	if (!response.ok) {
+		throw new Error(`Billplz get bill failed: ${text.slice(0, 200)}`);
+	}
+	const bill = JSON.parse(text) as {
+		paid?: boolean;
+		state?: string;
+		amount?: number;
+	};
+	return {
+		paid: bill.paid === true,
+		state: bill.state ?? "",
+		amountSen: typeof bill.amount === "number" ? bill.amount : null,
+	};
+}
+
 export type BillplzCallbackParams = Record<string, string>;
 
 /**
