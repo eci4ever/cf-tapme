@@ -38,12 +38,12 @@
 			"database_id": "fc99657d-1127-4e89-b473-7568d1120d66",
 			"migrations_dir": "migration"
 		}
-	]
+	],
 	/**
 	 * Smart Placement
 	 * https://developers.cloudflare.com/workers/configuration/smart-placement/#smart-placement
 	 */
-	// "placement": {  "mode": "smart" }
+	"placement": { "mode": "smart" },
 	/**
 	 * Bindings
 	 * Bindings allow your Worker to interact with resources on the Cloudflare Developer Platform, including

@@ -1,0 +1,5 @@
+# Vite emits content-hashed filenames under /assets/ — safe to cache forever.
+# Without this, every chunk revalidates on each load (max-age=0), adding a
+# round trip per module during hydration.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
