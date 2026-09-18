@@ -87,6 +87,12 @@ function BillingPage() {
 		queryKey: ["billing", "overview"],
 		queryFn: getBillingOverview,
 	});
+	// Must stay above the early returns below: a hook skipped on the first
+	// (loading) render breaks the hook order once data arrives.
+	const instructionsQuery = useQuery({
+		queryKey: ["billing", "payment-instructions"],
+		queryFn: getPaymentInstructions,
+	});
 
 	if (overviewQuery.isError) {
 		return <p className="text-sm text-destructive">Failed to load billing.</p>;
@@ -100,10 +106,6 @@ function BillingPage() {
 		ledger: overviewQuery.data.ledger as LedgerRow[],
 	};
 	const { state, ledger } = overview;
-	const instructionsQuery = useQuery({
-		queryKey: ["billing", "payment-instructions"],
-		queryFn: getPaymentInstructions,
-	});
 	const billplzEnabled = instructionsQuery.data?.billplzEnabled ?? false;
 
 	return (
