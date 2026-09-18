@@ -2,7 +2,15 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { fileURLToPath } from "node:url";
-import { beforeAll, afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	afterAll,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from "vitest";
 
 // billplz.webhook imports modules that need the Workers runtime
 // (cloudflare:workers). Swap the database for an in-memory SQLite driven
@@ -133,9 +141,7 @@ describe("finalizePaidBill idempotency", () => {
 		});
 
 		expect(await finalizePaidBill(topup, "bill-a")).toBe("credit");
-		expect(await finalizePaidBill(topup, "bill-a")).toBe(
-			"already_processed",
-		);
+		expect(await finalizePaidBill(topup, "bill-a")).toBe("already_processed");
 
 		const [org] = await db
 			.select({ balanceSen: organization.balanceSen })
@@ -180,9 +186,7 @@ describe("finalizePaidBill idempotency", () => {
 		});
 
 		expect(await finalizePaidBill(topup, "bill-b")).toBe("plan_renewal");
-		expect(await finalizePaidBill(topup, "bill-b")).toBe(
-			"already_processed",
-		);
+		expect(await finalizePaidBill(topup, "bill-b")).toBe("already_processed");
 
 		const [org] = await db
 			.select({
@@ -207,9 +211,7 @@ describe("finalizePaidBill idempotency", () => {
 			.set({ status: "approved", decisionNote: "Already handled" })
 			.where(eq(topupRequest.id, "t3"));
 
-		expect(await finalizePaidBill(topup, "bill-c")).toBe(
-			"already_processed",
-		);
+		expect(await finalizePaidBill(topup, "bill-c")).toBe("already_processed");
 
 		const [org] = await db
 			.select({ balanceSen: organization.balanceSen })

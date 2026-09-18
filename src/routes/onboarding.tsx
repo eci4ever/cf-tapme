@@ -244,10 +244,10 @@ function OnboardingPage() {
 									Waiting for your team to invite you?
 								</p>
 								<p className="mt-1">
-									If your company administrator is going to invite you, sign
-									out and sign in again once the invitation arrives — it will
-									show up on this page. Otherwise, you can create your own
-									company below.
+									If your company administrator is going to invite you, sign out
+									and sign in again once the invitation arrives — it will show
+									up on this page. Otherwise, you can create your own company
+									below.
 								</p>
 							</div>
 						</CardContent>

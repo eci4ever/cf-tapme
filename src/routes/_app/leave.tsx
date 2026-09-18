@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { StatusBadge } from "#/components/status-badge";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -353,16 +354,6 @@ function LeaveWidgetsCard({
 			</Card>
 		</div>
 	);
-}
-
-function StatusBadge({ status }: { status: string }) {
-	const variant =
-		status === "approved"
-			? "secondary"
-			: status === "rejected" || status === "cancelled"
-				? "destructive"
-				: "outline";
-	return <Badge variant={variant}>{status}</Badge>;
 }
 
 function LoadError({

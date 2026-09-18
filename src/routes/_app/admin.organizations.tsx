@@ -10,6 +10,7 @@ import { Eye } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { DataTable, SortableHeader } from "#/components/data-table/data-table";
+import { StatusBadge } from "#/components/status-badge";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -198,19 +199,7 @@ function OrganizationsAdminPage() {
 		{
 			accessorKey: "status",
 			header: "Status",
-			cell: ({ row }) => (
-				<Badge
-					variant={
-						row.original.status === "grace"
-							? "destructive"
-							: row.original.status === "warning"
-								? "secondary"
-								: "outline"
-					}
-				>
-					{row.original.status}
-				</Badge>
-			),
+			cell: ({ row }) => <StatusBadge status={row.original.status} />,
 		},
 		{
 			id: "actions",

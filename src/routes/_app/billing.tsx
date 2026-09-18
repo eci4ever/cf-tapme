@@ -8,6 +8,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ArrowDownRight, ArrowUpRight, CreditCard, Wallet } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { StatusBadge } from "#/components/status-badge";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -817,17 +818,7 @@ function TopupRequestsCard() {
 												: "Manual"}
 										</TableCell>
 										<TableCell>
-											<Badge
-												variant={
-													request.status === "approved"
-														? "outline"
-														: request.status === "rejected"
-															? "destructive"
-															: "secondary"
-												}
-											>
-												{request.status}
-											</Badge>
+											<StatusBadge status={request.status} />
 											{request.method === "billplz" &&
 											request.status === "pending" &&
 											request.billUrl ? (
