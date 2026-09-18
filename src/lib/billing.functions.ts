@@ -543,8 +543,13 @@ export const createBillplzTopup = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const { orgId, session } = await requireOrgBillingAccess();
 		const amountSen = Math.round(Number(data.amountSen));
-		if (!Number.isFinite(amountSen) || amountSen < 1000) {
-			return { ok: false as const, reason: "Minimum top-up is RM10" };
+		// Higher floor than manual transfers: the Billplz per-transaction fee
+		// makes small top-ups uneconomical.
+		if (!Number.isFinite(amountSen) || amountSen < 3000) {
+			return {
+				ok: false as const,
+				reason: "Minimum top-up for Billplz is RM30",
+			};
 		}
 		if (amountSen > 10_000_000) {
 			return { ok: false as const, reason: "Maximum top-up is RM100,000" };

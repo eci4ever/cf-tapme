@@ -418,8 +418,8 @@ function RequestTopupButton() {
 
 	function handleBillplzPay() {
 		const amountSen = parseRmToSen(amount);
-		if (amountSen === null || amountSen < 1000) {
-			toast.error("Minimum top-up is RM10");
+		if (amountSen === null || amountSen < 3000) {
+			toast.error("Minimum top-up for Billplz is RM30");
 			return;
 		}
 		billplzMutation.mutate({ amountSen });
@@ -509,6 +509,11 @@ function RequestTopupButton() {
 								onChange={(event) => setAmount(event.target.value)}
 								required
 							/>
+							{billplzEnabled ? (
+								<p className="text-xs text-muted-foreground">
+									Minimum RM30 with Billplz · RM10 with manual transfer
+								</p>
+							) : null}
 						</div>
 						<div className="flex flex-col gap-2">
 							<Label htmlFor="topup-ref">Payment reference</Label>
