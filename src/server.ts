@@ -14,17 +14,54 @@ import {
 } from "./lib/billplz.webhook";
 import { runCron } from "./lib/cron.jobs";
 
+// Baseline hardening for every response the worker sends. The CSP allows the
+// Turnstile widget (script + iframe + its API calls) and inline bootstrap
+// scripts emitted by TanStack Start SSR; ws:/wss: keeps Vite HMR working in
+// local dev. `geolocation=(self) is what lets the tap-in geolocation prompt.
+const SECURITY_HEADERS: Record<string, string> = {
+	"x-frame-options": "DENY",
+	"x-content-type-options": "nosniff",
+	"referrer-policy": "strict-origin-when-cross-origin",
+	"permissions-policy": "camera=(), microphone=(), geolocation=(self)",
+	"content-security-policy": [
+		"default-src 'self'",
+		"script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
+		"style-src 'self' 'unsafe-inline'",
+		"img-src 'self' data: blob:",
+		"font-src 'self' data:",
+		"connect-src 'self' https://challenges.cloudflare.com ws: wss:",
+		"frame-src https://challenges.cloudflare.com",
+		"frame-ancestors 'none'",
+		"base-uri 'self'",
+		"object-src 'none'",
+		"form-action 'self'",
+	].join("; "),
+};
+
+async function withSecurityHeaders(
+	response: Response | Promise<Response>,
+): Promise<Response> {
+	const resolved = await response;
+	const wrapped = new Response(resolved.body, resolved);
+	for (const [name, value] of Object.entries(SECURITY_HEADERS)) {
+		wrapped.headers.set(name, value);
+	}
+	return wrapped;
+}
+
 export default {
 	// TanStack's fetch takes (request, requestOptions) while the Worker
 	// runtime supplies (request, env, ctx) — forward only the request.
 	fetch: (request, _env, _ctx) => {
 		const { pathname } = new URL(request.url);
 		if (isBillplzPath(pathname)) {
-			return pathname === "/api/billplz/callback"
-				? handleBillplzCallback(request)
-				: handleBillplzRedirect(request);
+			return withSecurityHeaders(
+				pathname === "/api/billplz/callback"
+					? handleBillplzCallback(request)
+					: handleBillplzRedirect(request),
+			);
 		}
-		return serverEntry.fetch(request);
+		return withSecurityHeaders(serverEntry.fetch(request));
 	},
 
 	async scheduled(
