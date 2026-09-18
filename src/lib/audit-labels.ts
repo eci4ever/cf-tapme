@@ -18,6 +18,8 @@ export const AUDIT_ACTION_LABELS: Record<string, { label: string }> = {
 	"billing.subscribed": { label: "Plan subscribed" },
 	"billing.topup_approved": { label: "Top-up approved" },
 	"billing.topup_rejected": { label: "Top-up rejected" },
+	"billing.topup_paid_via_billplz": { label: "Top-up paid via Billplz" },
+	"billing.renewal_paid_via_billplz": { label: "Renewal paid via Billplz" },
 	"billing.downgraded": { label: "Downgraded to Free" },
 };
 
@@ -40,5 +42,7 @@ export const AUDIT_TONE_CLASS: Record<string, string> = {
 	"billing.subscribed": "text-foreground",
 	"billing.topup_approved": "text-emerald-600 dark:text-emerald-400",
 	"billing.topup_rejected": "text-destructive",
+	"billing.topup_paid_via_billplz": "text-emerald-600 dark:text-emerald-400",
+	"billing.renewal_paid_via_billplz": "text-emerald-600 dark:text-emerald-400",
 	"billing.downgraded": "text-destructive",
 };

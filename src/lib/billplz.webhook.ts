@@ -6,8 +6,8 @@ import {
 	platformSettings,
 	topupRequest,
 } from "#/db/schema";
-import { verifyXSignature } from "./billplz";
 import { logAudit } from "./audit.functions";
+import { verifyXSignature } from "./billplz";
 import { notifyOrgAdmins } from "./notify";
 import { addMonths, formatRm } from "./subscription";
 
@@ -174,6 +174,12 @@ async function finalizeCredit(
 			updatedAt: now,
 		})
 		.where(eq(topupRequest.id, topup.id));
+	await logAudit({
+		organizationId: topup.organizationId,
+		userId: topup.requestedBy,
+		action: "billing.topup_paid_via_billplz",
+		detail: `${formatRm(topup.amountSen)} (bill: ${billId})`,
+	});
 	console.log(
 		`[billplz] credited ${topup.amountSen} sen to org ${topup.organizationId} (bill ${billId})`,
 	);
