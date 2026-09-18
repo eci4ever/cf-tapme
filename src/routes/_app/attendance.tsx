@@ -299,14 +299,14 @@ function MyAttendanceTab() {
 						<>
 							<div>
 								<p className="text-xs text-muted-foreground">Clock in</p>
-								<p className="flex items-center gap-2 text-lg font-semibold">
+								<p className="flex items-center gap-2 text-lg font-semibold tabular-nums">
 									{formatTime(new Date(record.clockIn))}
 									<ClockInBadge status={record.clockInStatus} />
 								</p>
 							</div>
 							<div>
 								<p className="text-xs text-muted-foreground">Clock out</p>
-								<p className="flex items-center gap-2 text-lg font-semibold">
+								<p className="flex items-center gap-2 text-lg font-semibold tabular-nums">
 									{record.clockOut
 										? formatTime(new Date(record.clockOut))
 										: "—"}
@@ -316,7 +316,7 @@ function MyAttendanceTab() {
 								</p>
 							</div>
 							{isClockedIn && today.targetClockOut ? (
-								<p className="text-sm text-muted-foreground">
+								<p className="text-sm text-muted-foreground tabular-nums">
 									Target clock out: {formatTime(today.targetClockOut)}
 								</p>
 							) : null}
@@ -386,13 +386,13 @@ function MyAttendanceTab() {
 									<TableRow key={entry.id}>
 										<TableCell>{entry.date}</TableCell>
 										<TableCell>
-											<span className="flex items-center gap-2">
+											<span className="flex items-center gap-2 tabular-nums">
 												{formatTime(new Date(entry.clockIn))}
 												<ClockInBadge status={entry.clockInStatus} />
 											</span>
 										</TableCell>
 										<TableCell>
-											<span className="flex items-center gap-2">
+											<span className="flex items-center gap-2 tabular-nums">
 												{entry.clockOut
 													? formatTime(new Date(entry.clockOut))
 													: "—"}
