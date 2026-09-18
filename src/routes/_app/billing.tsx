@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { ArrowDownRight, ArrowUpRight, Wallet } from "lucide-react";
+import { ArrowDownRight, ArrowUpRight, CreditCard, Wallet } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "#/components/ui/badge";
@@ -39,6 +39,7 @@ import {
 	TableRow,
 } from "#/components/ui/table";
 import {
+	createBillplzTopup,
 	getBillingOverview,
 	getPaymentInstructions,
 	listMyTopupRequests,
@@ -365,6 +366,8 @@ type TopupRequestRow = {
 	amountSen: number;
 	paymentRef: string;
 	status: string;
+	method: string;
+	billUrl: string | null;
 	decisionNote: string | null;
 	createdAt: Date | string;
 };
@@ -396,6 +399,31 @@ function RequestTopupButton() {
 		},
 		onError: (error) => toast.error(error.message),
 	});
+	const billplzMutation = useMutation({
+		mutationFn: async (input: { amountSen: number }) => {
+			const result = await createBillplzTopup({ data: input });
+			if (!result.ok) {
+				throw new Error(result.reason);
+			}
+			return result;
+		},
+		onSuccess: (result) => {
+			queryClient.invalidateQueries({ queryKey: ["billing"] });
+			// Hand off to the Billplz payment page in the same tab; the
+			// gateway redirects back to /api/billplz/redirect on completion.
+			window.location.href = result.billUrl;
+		},
+		onError: (error) => toast.error(error.message),
+	});
+
+	function handleBillplzPay() {
+		const amountSen = parseRmToSen(amount);
+		if (amountSen === null || amountSen < 1000) {
+			toast.error("Minimum top-up is RM10");
+			return;
+		}
+		billplzMutation.mutate({ amountSen });
+	}
 
 	function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
@@ -408,6 +436,7 @@ function RequestTopupButton() {
 	}
 
 	const instructions = instructionsQuery.data ?? null;
+	const billplzEnabled = instructions?.billplzEnabled ?? false;
 
 	return (
 		<>
@@ -420,9 +449,9 @@ function RequestTopupButton() {
 					<DialogHeader>
 						<DialogTitle>Request credit top-up</DialogTitle>
 						<DialogDescription>
-							Transfer the amount by manual bank transfer, then submit this
-							request with your payment reference. The platform administrator
-							will verify it against the bank statement and approve.
+							{billplzEnabled
+								? "Pay instantly with FPX via Billplz — credit is added automatically once the payment goes through — or transfer manually and submit the reference below."
+								: "Transfer the amount by manual bank transfer, then submit this request with your payment reference. The platform administrator will verify it against the bank statement and approve."}
 						</DialogDescription>
 					</DialogHeader>
 					{instructions ? (
@@ -493,8 +522,28 @@ function RequestTopupButton() {
 								maxLength={60}
 							/>
 						</div>
-						<DialogFooter>
-							<Button type="submit" disabled={requestMutation.isPending}>
+						<DialogFooter className="flex-row items-center justify-end gap-2 sm:justify-end">
+							{billplzEnabled ? (
+								<Button
+									type="button"
+									onClick={handleBillplzPay}
+									disabled={
+										billplzMutation.isPending || requestMutation.isPending
+									}
+								>
+									<CreditCard />
+									{billplzMutation.isPending
+										? "Opening Billplz…"
+										: "Pay via Billplz (FPX)"}
+								</Button>
+							) : null}
+							<Button
+								type="submit"
+								variant={billplzEnabled ? "outline" : "default"}
+								disabled={
+									requestMutation.isPending || billplzMutation.isPending
+								}
+							>
 								{requestMutation.isPending ? "Submitting…" : "Submit request"}
 							</Button>
 						</DialogFooter>
@@ -603,6 +652,7 @@ function TopupRequestsCard() {
 								<TableHead>Date</TableHead>
 								<TableHead>Amount</TableHead>
 								<TableHead>Reference</TableHead>
+								<TableHead>Method</TableHead>
 								<TableHead>Status</TableHead>
 								<TableHead>Note</TableHead>
 							</TableRow>
@@ -614,7 +664,12 @@ function TopupRequestsCard() {
 										{formatDate(new Date(request.createdAt))}
 									</TableCell>
 									<TableCell>{formatRm(request.amountSen)}</TableCell>
-									<TableCell>{request.paymentRef}</TableCell>
+									<TableCell className="max-w-40 truncate">
+										{request.paymentRef}
+									</TableCell>
+									<TableCell>
+										{request.method === "billplz" ? "Billplz" : "Manual"}
+									</TableCell>
 									<TableCell>
 										<Badge
 											variant={
@@ -627,6 +682,16 @@ function TopupRequestsCard() {
 										>
 											{request.status}
 										</Badge>
+										{request.method === "billplz" &&
+										request.status === "pending" &&
+										request.billUrl ? (
+											<a
+												href={request.billUrl}
+												className="block text-xs text-primary underline underline-offset-2"
+											>
+												Resume payment
+											</a>
+										) : null}
 									</TableCell>
 									<TableCell className="text-muted-foreground">
 										{request.decisionNote ?? "—"}

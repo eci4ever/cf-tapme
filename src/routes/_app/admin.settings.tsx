@@ -37,6 +37,7 @@ function PaymentSettingsPage() {
 	const [contactEmail, setContactEmail] = useState("");
 	const [qrBase64, setQrBase64] = useState<string | null>(null);
 	const [qrCleared, setQrCleared] = useState(false);
+	const [billplzCollectionId, setBillplzCollectionId] = useState("");
 	const fileRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
@@ -47,6 +48,7 @@ function PaymentSettingsPage() {
 		setAccountHolder(saved.accountHolder ?? "");
 		setContactEmail(saved.contactEmail ?? "");
 		setQrBase64(saved.qrBase64 ?? null);
+		setBillplzCollectionId(saved.billplzCollectionId ?? "");
 	}, [settingsQuery.data]);
 
 	const saveMutation = useMutation({
@@ -58,6 +60,7 @@ function PaymentSettingsPage() {
 					accountHolder,
 					contactEmail,
 					qrBase64: qrCleared ? null : qrBase64,
+					billplzCollectionId,
 				},
 			});
 			if (!result.ok) {
@@ -156,6 +159,23 @@ function PaymentSettingsPage() {
 					<p className="flex items-center gap-1.5 text-xs text-muted-foreground">
 						<Mail className="size-3.5" />
 						Buyers email their bank-in receipt here with the payment reference.
+					</p>
+				</div>
+				<div className="flex flex-col gap-2">
+					<Label htmlFor="billplz-collection">
+						Billplz collection ID (optional)
+					</Label>
+					<Input
+						id="billplz-collection"
+						name="collectionId"
+						spellCheck={false}
+						value={billplzCollectionId}
+						onChange={(event) => setBillplzCollectionId(event.target.value)}
+						placeholder="e.g. 8x8bqf"
+					/>
+					<p className="text-xs text-muted-foreground">
+						Enables &ldquo;Pay via Billplz (FPX)&rdquo; in the Billing top-up
+						dialog. Sandbox or live follows the worker&rsquo;s BILLPLZ_MODE.
 					</p>
 				</div>
 				<div className="flex flex-col gap-2">

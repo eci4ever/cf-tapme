@@ -1,3 +1,4 @@
+import { env } from "cloudflare:workers";
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, like, sql } from "drizzle-orm";
 import { getDb } from "#/db";
@@ -10,6 +11,8 @@ import {
 	user,
 } from "#/db/schema";
 import { logAudit } from "./audit.functions";
+import { billplzConfigured, createBill } from "./billplz";
+import { getBillplzCollectionId } from "./billplz.webhook";
 import { sendEmail } from "./email";
 import { notifyOrgAdmins } from "./notify";
 import { getCurrentSession } from "./session";
@@ -531,6 +534,96 @@ export const requestTopup = createServerFn({ method: "POST" })
 		return { ok: true as const };
 	});
 
+/**
+ * Create a Billplz bill for a credit top-up (sandbox or live via env).
+ * Credit is granted only by the gateway callback — never on redirect.
+ */
+export const createBillplzTopup = createServerFn({ method: "POST" })
+	.validator((input: { amountSen: number }) => input)
+	.handler(async ({ data }) => {
+		const { orgId, session } = await requireOrgBillingAccess();
+		const amountSen = Math.round(Number(data.amountSen));
+		if (!Number.isFinite(amountSen) || amountSen < 1000) {
+			return { ok: false as const, reason: "Minimum top-up is RM10" };
+		}
+		if (amountSen > 10_000_000) {
+			return { ok: false as const, reason: "Maximum top-up is RM100,000" };
+		}
+		if (!billplzConfigured()) {
+			return {
+				ok: false as const,
+				reason: "Billplz is not configured yet — contact the administrator",
+			};
+		}
+		const collectionId = await getBillplzCollectionId();
+		if (!collectionId) {
+			return {
+				ok: false as const,
+				reason: "Billplz is not configured yet — contact the administrator",
+			};
+		}
+		const db = getDb();
+		const [existing] = await db
+			.select({ id: topupRequest.id })
+			.from(topupRequest)
+			.where(
+				and(
+					eq(topupRequest.organizationId, orgId),
+					eq(topupRequest.status, "pending"),
+				),
+			)
+			.limit(1);
+		if (existing) {
+			return {
+				ok: false as const,
+				reason: "You already have a pending top-up request",
+			};
+		}
+		const [org] = await db
+			.select({ name: organization.name })
+			.from(organization)
+			.where(eq(organization.id, orgId))
+			.limit(1);
+		const base = (env.BETTER_AUTH_URL || "http://localhost:3000").replace(
+			/\/$/,
+			"",
+		);
+		let bill;
+		try {
+			bill = await createBill({
+				collectionId,
+				email: session.user.email,
+				name: session.user.name,
+				amountSen,
+				description: `${org?.name ?? "Organization"} credit top-up`,
+				callbackUrl: `${base}/api/billplz/callback`,
+				redirectUrl: `${base}/api/billplz/redirect`,
+				skipDetails: true,
+			});
+		} catch (error) {
+			console.error("[billplz] create bill failed:", error);
+			return {
+				ok: false as const,
+				reason: "Could not start the Billplz payment — try again shortly",
+			};
+		}
+		const now = new Date();
+		await db.insert(topupRequest).values({
+			id: crypto.randomUUID(),
+			organizationId: orgId,
+			amountSen,
+			paymentRef: bill.id,
+			status: "pending",
+			method: "billplz",
+			billId: bill.id,
+			billUrl: bill.url,
+			requestedBy: session.user.id,
+			createdAt: now,
+			updatedAt: now,
+		});
+		return { ok: true as const, billUrl: bill.url };
+	});
+
 export const listMyTopupRequests = createServerFn({ method: "GET" }).handler(
 	async () => {
 		const { orgId } = await requireOrgBillingAccess();
@@ -540,6 +633,8 @@ export const listMyTopupRequests = createServerFn({ method: "GET" }).handler(
 				amountSen: topupRequest.amountSen,
 				paymentRef: topupRequest.paymentRef,
 				status: topupRequest.status,
+				method: topupRequest.method,
+				billUrl: topupRequest.billUrl,
 				decisionNote: topupRequest.decisionNote,
 				createdAt: topupRequest.createdAt,
 			})
@@ -564,6 +659,7 @@ export const listPendingTopupRequests = createServerFn({
 			orgName: organization.name,
 			amountSen: topupRequest.amountSen,
 			paymentRef: topupRequest.paymentRef,
+			method: topupRequest.method,
 			requestedByName: user.name,
 			createdAt: topupRequest.createdAt,
 		})
@@ -666,6 +762,7 @@ async function readPaymentSettings() {
 			accountHolder: platformSettings.accountHolder,
 			contactEmail: platformSettings.contactEmail,
 			qrBase64: platformSettings.qrBase64,
+			billplzCollectionId: platformSettings.billplzCollectionId,
 		})
 		.from(platformSettings)
 		.where(eq(platformSettings.id, PAYMENT_SETTINGS_ID))
@@ -688,7 +785,16 @@ async function requirePlatformAdmin() {
 export const getPaymentInstructions = createServerFn({ method: "GET" }).handler(
 	async () => {
 		await requireOrgBillingAccess();
-		return readPaymentSettings();
+		const settings = await readPaymentSettings();
+		return {
+			bankName: settings?.bankName ?? null,
+			bankAccount: settings?.bankAccount ?? null,
+			accountHolder: settings?.accountHolder ?? null,
+			contactEmail: settings?.contactEmail ?? null,
+			qrBase64: settings?.qrBase64 ?? null,
+			billplzEnabled:
+				billplzConfigured() && Boolean(settings?.billplzCollectionId),
+		};
 	},
 );
 
@@ -708,6 +814,7 @@ export const savePlatformPaymentSettings = createServerFn({ method: "POST" })
 			contactEmail: string;
 			// null clears the stored QR image
 			qrBase64: string | null;
+			billplzCollectionId: string;
 		}) => input,
 	)
 	.handler(async ({ data }) => {
@@ -725,6 +832,7 @@ export const savePlatformPaymentSettings = createServerFn({ method: "POST" })
 		if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(contactEmail)) {
 			return { ok: false as const, reason: "Invalid contact email" };
 		}
+		const billplzCollectionId = data.billplzCollectionId.trim().slice(0, 60);
 		let qrBase64: string | null = null;
 		if (data.qrBase64 !== null) {
 			const trimmed = data.qrBase64.trim();
@@ -751,6 +859,7 @@ export const savePlatformPaymentSettings = createServerFn({ method: "POST" })
 				accountHolder,
 				contactEmail,
 				qrBase64,
+				billplzCollectionId: billplzCollectionId || null,
 				updatedAt: new Date(),
 			})
 			.onConflictDoUpdate({
@@ -761,6 +870,7 @@ export const savePlatformPaymentSettings = createServerFn({ method: "POST" })
 					accountHolder,
 					contactEmail,
 					qrBase64,
+					billplzCollectionId: billplzCollectionId || null,
 					updatedAt: new Date(),
 				},
 			});

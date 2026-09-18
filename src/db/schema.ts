@@ -128,6 +128,11 @@ export const topupRequest = sqliteTable(
 		amountSen: integer("amount_sen").notNull(),
 		paymentRef: text("payment_ref").notNull(),
 		status: text("status").notNull().default("pending"),
+		// "manual" (bank transfer, admin-approved) or "billplz" (auto on callback)
+		method: text("method").notNull().default("manual"),
+		billId: text("bill_id"),
+		billUrl: text("bill_url"),
+		paidAt: integer("paid_at", { mode: "timestamp" }),
 		requestedBy: text("requested_by")
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
@@ -143,6 +148,7 @@ export const topupRequest = sqliteTable(
 		uniqueIndex("topup_request_pending_uq")
 			.on(table.organizationId)
 			.where(sql`status = 'pending'`),
+		uniqueIndex("topup_request_bill_uq").on(table.billId),
 	],
 );
 
@@ -412,5 +418,7 @@ export const platformSettings = sqliteTable("platform_settings", {
 	accountHolder: text("account_holder"),
 	contactEmail: text("contact_email"),
 	qrBase64: text("qr_base64"),
+	// Billplz collection bills are created under (sandbox or live via env)
+	billplzCollectionId: text("billplz_collection_id"),
 	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });

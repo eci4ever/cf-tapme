@@ -21,3 +21,12 @@ EMAIL_FROM=admin@resend.dev
 EMAIL_BRAND_NAME=TapMe
 EMAIL_REPLY_TO=
 EMAIL_SUPPORT=
+
+# Billplz payment gateway (optional — "Pay via Billplz (FPX)" hides when unset)
+# BILLPLZ_MODE defaults to sandbox; set to "live" only for production.
+# Sandbox dashboard: https://www.billplz-sandbox.com/dashboard
+#   BILLPLZ_SECRET_KEY       Business Settings > Secret Key (username for Basic auth)
+#   BILLPLZ_X_SIGNATURE_KEY  Business Settings > X Signature Key (callback verification)
+BILLPLZ_MODE=sandbox
+BILLPLZ_SECRET_KEY=
+BILLPLZ_X_SIGNATURE_KEY=

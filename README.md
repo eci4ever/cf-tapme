@@ -47,6 +47,9 @@ npm run db:migrate:remote             # apply migrations to prod D1
 
 Required secrets (`.dev.vars` locally, `wrangler secret` in prod):
 `BETTER_AUTH_SECRET`, `RESEND_API_KEY`, optional `EMAIL_FROM`, `EMAIL_BRAND_NAME`.
+Billplz payments (optional): `BILLPLZ_SECRET_KEY`, `BILLPLZ_X_SIGNATURE_KEY`,
+`BILLPLZ_MODE` (defaults to sandbox) — plus the collection ID in platform
+admin → Payment settings.
 
 ## Documentation
 

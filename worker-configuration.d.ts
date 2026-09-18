@@ -13,6 +13,9 @@ interface __BaseEnv_Env {
 	GOOGLE_CLIENT_ID: string;
 	GOOGLE_CLIENT_SECRET: string;
 	TURNSTILE_SECRET_KEY: string;
+	BILLPLZ_MODE: string;
+	BILLPLZ_SECRET_KEY: string;
+	BILLPLZ_X_SIGNATURE_KEY: string;
 }
 declare namespace Cloudflare {
 	interface GlobalProps {
@@ -25,7 +28,7 @@ type StringifyValues<EnvType extends Record<string, unknown>> = {
 	[Binding in keyof EnvType]: EnvType[Binding] extends string ? EnvType[Binding] : string;
 };
 declare namespace NodeJS {
-	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "BETTER_AUTH_URL" | "BETTER_AUTH_SECRET" | "RESEND_API_KEY" | "EMAIL_FROM" | "EMAIL_REPLY_TO" | "EMAIL_SUPPORT" | "EMAIL_BRAND_NAME" | "GOOGLE_CLIENT_ID" | "GOOGLE_CLIENT_SECRET" | "TURNSTILE_SECRET_KEY">> {}
+	interface ProcessEnv extends StringifyValues<Pick<Cloudflare.Env, "BETTER_AUTH_URL" | "BETTER_AUTH_SECRET" | "RESEND_API_KEY" | "EMAIL_FROM" | "EMAIL_REPLY_TO" | "EMAIL_SUPPORT" | "EMAIL_BRAND_NAME" | "GOOGLE_CLIENT_ID" | "GOOGLE_CLIENT_SECRET" | "TURNSTILE_SECRET_KEY" | "BILLPLZ_MODE" | "BILLPLZ_SECRET_KEY" | "BILLPLZ_X_SIGNATURE_KEY">> {}
 }
 
 // Begin runtime types
