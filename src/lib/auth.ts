@@ -11,6 +11,31 @@ import { member } from "#/db/schema";
 import { logAudit } from "./audit.functions";
 import { sendEmail } from "./email";
 
+// Always-pass Turnstile test key — keeps local dev unblocked without a real
+// secret. NEVER acceptable in production, where it would disable captcha.
+const TURNSTILE_DEV_SECRET = "1x0000000000000000000000000000000AA";
+
+/**
+ * Fail closed in production builds: a missing secret must make captcha
+ * verification reject (siteverify refuses unknown secrets), not silently
+ * pass. Dev builds keep the always-pass test key so local flows work.
+ */
+function resolveTurnstileSecret(): string {
+	if (env.TURNSTILE_SECRET_KEY) {
+		return env.TURNSTILE_SECRET_KEY;
+	}
+	if (import.meta.env.PROD) {
+		console.error(
+			"[auth] TURNSTILE_SECRET_KEY is not set — captcha will REJECT all public form submissions until the secret is configured",
+		);
+		return "fail-closed:missing-turnstile-secret";
+	}
+	console.warn(
+		"[auth] TURNSTILE_SECRET_KEY not set — using the always-pass Turnstile test key (dev only)",
+	);
+	return TURNSTILE_DEV_SECRET;
+}
+
 function createAuth() {
 	const baseURL = env.BETTER_AUTH_URL || "http://localhost:3000";
 	return betterAuth({
@@ -211,11 +236,11 @@ function createAuth() {
 		plugins: [
 			// Turnstile on the public auth forms (/sign-in/email, /sign-up/email,
 			// /request-password-reset); token arrives in the x-captcha-response
-			// header. Test secret fallback keeps dev environments unblocked.
+			// header. See resolveTurnstileSecret: production fails closed when
+			// the secret is missing; dev falls back to the always-pass test key.
 			captcha({
 				provider: "cloudflare-turnstile",
-				secretKey:
-					env.TURNSTILE_SECRET_KEY || "1x0000000000000000000000000000000AA",
+				secretKey: resolveTurnstileSecret(),
 			}),
 			admin(),
 			organization({
