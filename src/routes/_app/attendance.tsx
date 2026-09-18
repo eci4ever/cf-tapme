@@ -49,6 +49,10 @@ import {
 import { formatDate, formatTime } from "#/lib/dates";
 import { getPosition } from "#/lib/geolocation";
 import {
+	PageSkeleton,
+	TableRowsSkeleton,
+} from "#/components/loading-skeletons";
+import {
 	type ClockInStatus,
 	type ClockOutStatus,
 	formatMinutes,
@@ -270,7 +274,7 @@ function MyAttendanceTab() {
 		);
 	}
 	if (todayQuery.isPending || historyQuery.isPending || !todayQuery.data) {
-		return <p className="text-sm text-muted-foreground">Loading…</p>;
+		return <PageSkeleton />;
 	}
 	const today: TodayData = {
 		...todayQuery.data,
@@ -363,7 +367,7 @@ function MyAttendanceTab() {
 				</CardHeader>
 				<CardContent>
 					{heatmapQuery.isPending ? (
-						<p className="text-sm text-muted-foreground">Loading…</p>
+						<PageSkeleton />
 					) : (
 						<AttendanceHeatmap days={heatmapQuery.data?.days ?? []} />
 					)}
@@ -582,7 +586,7 @@ function AllAttendanceTab() {
 								</TableRow>
 							) : listQuery.isPending ? (
 								<TableRow>
-									<TableCell colSpan={7}>Loading…</TableCell>
+									<TableRowsSkeleton colSpan={7} />
 								</TableRow>
 							) : (
 								data.map((row) => (
@@ -897,7 +901,7 @@ function IssueReviewCard() {
 				{reviewQuery.isError ? (
 					<p className="text-sm text-destructive">Failed to load issues.</p>
 				) : reviewQuery.isPending ? (
-					<p className="text-sm text-muted-foreground">Loading…</p>
+					<PageSkeleton />
 				) : pending.length === 0 ? (
 					<p className="text-sm text-muted-foreground">
 						Nothing to review right now.
@@ -1135,7 +1139,7 @@ function MyIssuesCard() {
 						</Button>
 					</p>
 				) : myIssuesQuery.isPending ? (
-					<p className="text-sm text-muted-foreground">Loading…</p>
+					<PageSkeleton />
 				) : issues.length === 0 ? (
 					<p className="text-sm text-muted-foreground">
 						No attendance issues this month. Keep it up!

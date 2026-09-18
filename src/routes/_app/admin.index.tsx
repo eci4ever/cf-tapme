@@ -15,6 +15,7 @@ import { getPlatformStats, runCronNow } from "#/lib/admin.functions";
 import { authClient } from "#/lib/auth-client";
 import { listOrgBilling } from "#/lib/billing.functions";
 import { formatDate } from "#/lib/dates";
+import { LinesSkeleton } from "#/components/loading-skeletons";
 
 export const Route = createFileRoute("/_app/admin/")({
 	staticData: { title: "Platform admin" },
@@ -88,7 +89,7 @@ function AdminOverviewPage() {
 					</CardHeader>
 					<CardContent>
 						{recentQuery.isPending ? (
-							<p className="text-sm text-muted-foreground">Loading…</p>
+							<LinesSkeleton rows={3} />
 						) : (recentQuery.data ?? []).length === 0 ? (
 							<p className="text-sm text-muted-foreground">No users yet.</p>
 						) : (
@@ -125,7 +126,7 @@ function AdminOverviewPage() {
 					</CardHeader>
 					<CardContent>
 						{orgsQuery.isPending ? (
-							<p className="text-sm text-muted-foreground">Loading…</p>
+							<LinesSkeleton rows={3} />
 						) : attentionOrgs.length === 0 ? (
 							<p className="text-sm text-muted-foreground">
 								All organizations are in good standing.

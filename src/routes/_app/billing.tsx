@@ -59,6 +59,7 @@ import {
 } from "#/lib/billing.functions";
 import { formatDate } from "#/lib/dates";
 import { getMyOrgRole } from "#/lib/org.functions";
+import { PageSkeleton } from "#/components/loading-skeletons";
 import {
 	formatRm,
 	type LedgerType,
@@ -106,7 +107,7 @@ function BillingPage() {
 		return <p className="text-sm text-destructive">Failed to load billing.</p>;
 	}
 	if (overviewQuery.isPending || !overviewQuery.data) {
-		return <p className="text-sm text-muted-foreground">Loading billing…</p>;
+		return <PageSkeleton />;
 	}
 
 	const { state } = overviewQuery.data as { state: SubscriptionState };

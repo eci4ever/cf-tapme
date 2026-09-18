@@ -47,6 +47,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { authClient } from "#/lib/auth-client";
 import { formatDate } from "#/lib/dates";
+import { TableRowsSkeleton } from "#/components/loading-skeletons";
 
 export const Route = createFileRoute("/_app/account")({
 	staticData: { title: "Account" },
@@ -879,7 +880,7 @@ function SessionsTab({ currentToken }: { currentToken: string }) {
 					<TableBody>
 						{sessionsQuery.isPending ? (
 							<TableRow>
-								<TableCell colSpan={5}>Loading…</TableCell>
+								<TableRowsSkeleton colSpan={5} />
 							</TableRow>
 						) : (
 							sessions.map((sessionItem) => {

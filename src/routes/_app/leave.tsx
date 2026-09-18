@@ -59,6 +59,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { Textarea } from "#/components/ui/textarea";
 import { formatDate } from "#/lib/dates";
+import { PageSkeleton } from "#/components/loading-skeletons";
 import {
 	applyLeave,
 	cancelLeave,
@@ -153,7 +154,7 @@ function MyLeaveTab() {
 		);
 	}
 	if (overviewQuery.isPending || !overviewQuery.data) {
-		return <p className="text-sm text-muted-foreground">Loading…</p>;
+		return <PageSkeleton />;
 	}
 	const overview = {
 		balances: overviewQuery.data.balances as Balance[],
@@ -600,7 +601,7 @@ function ApprovalsTab() {
 		);
 	}
 	if (approvalsQuery.isPending || !approvalsQuery.data) {
-		return <p className="text-sm text-muted-foreground">Loading…</p>;
+		return <PageSkeleton />;
 	}
 	const data = {
 		requests: approvalsQuery.data.requests as ApprovalRow[],

@@ -55,6 +55,7 @@ import {
 	listOrgMembers,
 } from "#/lib/org.functions";
 import { setMemberRole } from "#/lib/org-settings.functions";
+import { TableRowsSkeleton } from "#/components/loading-skeletons";
 
 export const Route = createFileRoute("/_app/team")({
 	staticData: { title: "Team" },
@@ -337,7 +338,7 @@ function TeamPage() {
 						<TableBody>
 							{membersQuery.isPending ? (
 								<TableRow>
-									<TableCell colSpan={5}>Loading…</TableCell>
+									<TableRowsSkeleton colSpan={5} />
 								</TableRow>
 							) : (
 								members.map((member) => (

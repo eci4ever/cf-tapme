@@ -44,6 +44,7 @@ import { getOrgAdminDetail, listOrgLedger } from "#/lib/admin.functions";
 import { adminAdjustCredit } from "#/lib/billing.functions";
 import { formatDate } from "#/lib/dates";
 import { formatRm, parseRmToSen } from "#/lib/subscription";
+import { PageSkeleton } from "#/components/loading-skeletons";
 
 export const Route = createFileRoute("/_app/admin/organizations_/$orgId")({
 	staticData: { title: "Organization detail" },
@@ -108,7 +109,7 @@ function OrgDetailPage() {
 	});
 
 	if (detailQuery.isPending) {
-		return <p className="text-sm text-muted-foreground">Loading…</p>;
+		return <PageSkeleton />;
 	}
 	if (detailQuery.isError || !detailQuery.data) {
 		return (
@@ -295,7 +296,7 @@ function OrgDetailPage() {
 					</CardHeader>
 					<CardContent>
 						{ledgerQuery.isPending ? (
-							<p className="text-sm text-muted-foreground">Loading…</p>
+							<PageSkeleton />
 						) : (ledgerQuery.data ?? []).length === 0 ? (
 							<p className="text-sm text-muted-foreground">
 								No credit movements yet.

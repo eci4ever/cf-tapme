@@ -11,6 +11,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { DataTable, SortableHeader } from "#/components/data-table/data-table";
 import { StatusBadge } from "#/components/status-badge";
+import { LinesSkeleton } from "#/components/loading-skeletons";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -331,7 +332,7 @@ function PendingTopupsCard() {
 			</CardHeader>
 			<CardContent>
 				{requestsQuery.isPending ? (
-					<p className="text-sm text-muted-foreground">Loading…</p>
+					<LinesSkeleton rows={3} />
 				) : requests.length === 0 ? (
 					<p className="text-sm text-muted-foreground">
 						No pending top-up requests.

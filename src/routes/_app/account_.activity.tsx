@@ -9,6 +9,7 @@ import {
 } from "#/components/ui/card";
 import { AUDIT_ACTION_LABELS, AUDIT_TONE_CLASS } from "#/lib/audit-labels";
 import { listMyActivity } from "#/lib/auth.functions";
+import { LinesSkeleton } from "#/components/loading-skeletons";
 
 export const Route = createFileRoute("/_app/account_/activity")({
 	staticData: { title: "My activity" },
@@ -34,7 +35,7 @@ function ActivityPage() {
 				</CardHeader>
 				<CardContent>
 					{activityQuery.isPending ? (
-						<p className="text-sm text-muted-foreground">Loading…</p>
+						<LinesSkeleton rows={4} />
 					) : activityQuery.isError ? (
 						<p className="text-sm text-destructive">Failed to load activity.</p>
 					) : logs.length === 0 ? (

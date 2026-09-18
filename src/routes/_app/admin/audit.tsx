@@ -30,6 +30,7 @@ import {
 	PLATFORM_AUDIT_ACTION_KEYS,
 } from "#/lib/auth.functions";
 import { listOrgBilling } from "#/lib/billing.functions";
+import { LinesSkeleton } from "#/components/loading-skeletons";
 
 export const Route = createFileRoute("/_app/admin/audit")({
 	staticData: { title: "Audit log" },
@@ -138,7 +139,7 @@ function AdminAuditPage() {
 					</div>
 				</div>
 				{logsQuery.isPending ? (
-					<p className="text-sm text-muted-foreground">Loading…</p>
+					<LinesSkeleton rows={4} />
 				) : logsQuery.isError ? (
 					<p className="text-sm text-destructive">Failed to load audit log.</p>
 				) : logs.length === 0 ? (

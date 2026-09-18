@@ -83,6 +83,7 @@ import {
 	updateSchedule,
 } from "#/lib/org-settings.functions";
 import { formatMinutes } from "#/lib/schedule";
+import { LinesSkeleton } from "#/components/loading-skeletons";
 
 export const Route = createFileRoute("/_app/settings")({
 	staticData: { title: "Settings" },
@@ -1202,7 +1203,7 @@ function GeofenceCard() {
 			</CardHeader>
 			<CardContent className="flex flex-col gap-4">
 				{settingsQuery.isPending || !settings ? (
-					<p className="text-sm text-muted-foreground">Loading…</p>
+					<LinesSkeleton rows={4} />
 				) : (
 					<>
 						<div className="flex items-center justify-between rounded-lg border p-3">
@@ -1611,7 +1612,7 @@ function LeaveTypesCard() {
 			</CardHeader>
 			<CardContent className="flex flex-col gap-4">
 				{typesQuery.isPending ? (
-					<p className="text-sm text-muted-foreground">Loading…</p>
+					<LinesSkeleton rows={4} />
 				) : (
 					<div className="flex flex-col gap-2">
 						{types.map((type) =>
