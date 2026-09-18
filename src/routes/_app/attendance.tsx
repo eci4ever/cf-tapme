@@ -142,16 +142,16 @@ function AttendancePage() {
 
 	return (
 		<Tabs value={activeTab} onValueChange={setTab} className="gap-4">
-			<TabsList className="h-11">
-				<TabsTrigger value="me" className="h-11 px-3 sm:px-4">
+			<TabsList className="h-10">
+				<TabsTrigger value="me" className="h-10 px-3 sm:px-4">
 					My attendance
 				</TabsTrigger>
 				{canViewAll ? (
-					<TabsTrigger value="all" className="h-11 px-3 sm:px-4">
+					<TabsTrigger value="all" className="h-10 px-3 sm:px-4">
 						All attendance
 					</TabsTrigger>
 				) : null}
-				<TabsTrigger value="issues" className="h-11 px-3 sm:px-4">
+				<TabsTrigger value="issues" className="h-10 px-3 sm:px-4">
 					Issues
 				</TabsTrigger>
 			</TabsList>
@@ -336,7 +336,7 @@ function MyAttendanceTab() {
 					)}
 					<div className="ml-auto flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
 						<Button
-							className="h-12 w-full text-base sm:h-9 sm:w-auto sm:text-sm"
+							className="h-11 w-full text-base sm:h-9 sm:w-auto sm:text-sm"
 							onClick={handleClockIn}
 							disabled={pending || !today.employee || record !== null}
 						>
@@ -345,7 +345,7 @@ function MyAttendanceTab() {
 						</Button>
 						<Button
 							variant="outline"
-							className="h-12 w-full text-base sm:h-9 sm:w-auto sm:text-sm"
+							className="h-11 w-full text-base sm:h-9 sm:w-auto sm:text-sm"
 							onClick={handleClockOut}
 							disabled={pending || !today.employee || !isClockedIn}
 						>
