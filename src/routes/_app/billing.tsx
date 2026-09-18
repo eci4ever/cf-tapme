@@ -418,8 +418,8 @@ function RequestTopupButton() {
 
 	function handleBillplzPay() {
 		const amountSen = parseRmToSen(amount);
-		if (amountSen === null || amountSen < 3000) {
-			toast.error("Minimum top-up for Billplz is RM30");
+		if (amountSen === null || amountSen < 100) {
+			toast.error("Minimum top-up is RM1");
 			return;
 		}
 		billplzMutation.mutate({ amountSen });
@@ -511,7 +511,8 @@ function RequestTopupButton() {
 							/>
 							{billplzEnabled ? (
 								<p className="text-xs text-muted-foreground">
-									Minimum RM30 with Billplz · RM10 with manual transfer
+									A {formatRm(instructions?.billplzFeeSen ?? 125)} Billplz fee
+									is added at checkout · RM10 minimum for manual transfer
 								</p>
 							) : null}
 						</div>
@@ -539,7 +540,13 @@ function RequestTopupButton() {
 									<CreditCard />
 									{billplzMutation.isPending
 										? "Opening Billplz…"
-										: "Pay via Billplz (FPX)"}
+										: (() => {
+												const credit = parseRmToSen(amount);
+												const feeSen = instructions?.billplzFeeSen ?? 125;
+												return credit !== null && credit >= 100
+													? `Pay RM${((credit + feeSen) / 100).toFixed(2)} via Billplz`
+													: "Pay via Billplz (FPX)";
+											})()}
 								</Button>
 							) : null}
 							<Button

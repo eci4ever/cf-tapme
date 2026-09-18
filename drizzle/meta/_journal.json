@@ -120,6 +120,13 @@
       "when": 1789697179212,
       "tag": "0016_billplz_topup",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "6",
+      "when": 1789701959350,
+      "tag": "0017_billplz_fee_passthrough",
+      "breakpoints": true
     }
   ]
 }

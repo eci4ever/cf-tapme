@@ -68,10 +68,13 @@ export async function handleBillplzCallback(
 		return new Response("OK", { status: 200 });
 	}
 
-	if (Number.isInteger(amountSen) && amountSen !== topup.amountSen) {
+	// The bill was created for credit + fee pass-through; fall back to the
+	// credit amount for rows created before fee handling existed.
+	const expectedSen = topup.billAmountSen ?? topup.amountSen;
+	if (Number.isInteger(amountSen) && amountSen !== expectedSen) {
 		// Never credit an amount that does not match the created bill.
 		console.error(
-			`[billplz] bill ${billId} amount mismatch: got ${amountSen}, expected ${topup.amountSen}`,
+			`[billplz] bill ${billId} amount mismatch: got ${amountSen}, expected ${expectedSen}`,
 		);
 		return new Response("Amount mismatch", { status: 422 });
 	}

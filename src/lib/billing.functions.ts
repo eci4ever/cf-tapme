@@ -543,13 +543,10 @@ export const createBillplzTopup = createServerFn({ method: "POST" })
 	.handler(async ({ data }) => {
 		const { orgId, session } = await requireOrgBillingAccess();
 		const amountSen = Math.round(Number(data.amountSen));
-		// Higher floor than manual transfers: the Billplz per-transaction fee
-		// makes small top-ups uneconomical.
-		if (!Number.isFinite(amountSen) || amountSen < 3000) {
-			return {
-				ok: false as const,
-				reason: "Minimum top-up for Billplz is RM30",
-			};
+		// Billplz bills start at RM1; no extra platform minimum — the gateway
+		// fee is passed through to the payer instead.
+		if (!Number.isFinite(amountSen) || amountSen < 100) {
+			return { ok: false as const, reason: "Minimum top-up is RM1" };
 		}
 		if (amountSen > 10_000_000) {
 			return { ok: false as const, reason: "Maximum top-up is RM100,000" };
@@ -589,6 +586,9 @@ export const createBillplzTopup = createServerFn({ method: "POST" })
 			.from(organization)
 			.where(eq(organization.id, orgId))
 			.limit(1);
+		const settings = await readPaymentSettings();
+		const feeSen = settings?.billplzFeeSen ?? 125;
+		const billAmountSen = amountSen + feeSen;
 		const base = (env.BETTER_AUTH_URL || "http://localhost:3000").replace(
 			/\/$/,
 			"",
@@ -599,7 +599,7 @@ export const createBillplzTopup = createServerFn({ method: "POST" })
 				collectionId,
 				email: session.user.email,
 				name: session.user.name,
-				amountSen,
+				amountSen: billAmountSen,
 				description: `${org?.name ?? "Organization"} credit top-up`,
 				callbackUrl: `${base}/api/billplz/callback`,
 				redirectUrl: `${base}/api/billplz/redirect`,
@@ -622,6 +622,7 @@ export const createBillplzTopup = createServerFn({ method: "POST" })
 			method: "billplz",
 			billId: bill.id,
 			billUrl: bill.url,
+			billAmountSen,
 			requestedBy: session.user.id,
 			createdAt: now,
 			updatedAt: now,
@@ -768,6 +769,7 @@ async function readPaymentSettings() {
 			contactEmail: platformSettings.contactEmail,
 			qrBase64: platformSettings.qrBase64,
 			billplzCollectionId: platformSettings.billplzCollectionId,
+			billplzFeeSen: platformSettings.billplzFeeSen,
 		})
 		.from(platformSettings)
 		.where(eq(platformSettings.id, PAYMENT_SETTINGS_ID))
@@ -799,6 +801,7 @@ export const getPaymentInstructions = createServerFn({ method: "GET" }).handler(
 			qrBase64: settings?.qrBase64 ?? null,
 			billplzEnabled:
 				billplzConfigured() && Boolean(settings?.billplzCollectionId),
+			billplzFeeSen: settings?.billplzFeeSen ?? 125,
 		};
 	},
 );
@@ -820,6 +823,7 @@ export const savePlatformPaymentSettings = createServerFn({ method: "POST" })
 			// null clears the stored QR image
 			qrBase64: string | null;
 			billplzCollectionId: string;
+			billplzFeeSen: number;
 		}) => input,
 	)
 	.handler(async ({ data }) => {
@@ -838,6 +842,14 @@ export const savePlatformPaymentSettings = createServerFn({ method: "POST" })
 			return { ok: false as const, reason: "Invalid contact email" };
 		}
 		const billplzCollectionId = data.billplzCollectionId.trim().slice(0, 60);
+		const billplzFeeSen = Math.round(Number(data.billplzFeeSen));
+		if (
+			!Number.isInteger(billplzFeeSen) ||
+			billplzFeeSen < 0 ||
+			billplzFeeSen > 1000
+		) {
+			return { ok: false as const, reason: "Billplz fee must be RM0–RM10" };
+		}
 		let qrBase64: string | null = null;
 		if (data.qrBase64 !== null) {
 			const trimmed = data.qrBase64.trim();
@@ -865,6 +877,7 @@ export const savePlatformPaymentSettings = createServerFn({ method: "POST" })
 				contactEmail,
 				qrBase64,
 				billplzCollectionId: billplzCollectionId || null,
+				billplzFeeSen,
 				updatedAt: new Date(),
 			})
 			.onConflictDoUpdate({
@@ -876,6 +889,7 @@ export const savePlatformPaymentSettings = createServerFn({ method: "POST" })
 					contactEmail,
 					qrBase64,
 					billplzCollectionId: billplzCollectionId || null,
+					billplzFeeSen,
 					updatedAt: new Date(),
 				},
 			});

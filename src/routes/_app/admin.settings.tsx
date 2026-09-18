@@ -38,6 +38,7 @@ function PaymentSettingsPage() {
 	const [qrBase64, setQrBase64] = useState<string | null>(null);
 	const [qrCleared, setQrCleared] = useState(false);
 	const [billplzCollectionId, setBillplzCollectionId] = useState("");
+	const [billplzFee, setBillplzFee] = useState("1.25");
 	const fileRef = useRef<HTMLInputElement>(null);
 
 	useEffect(() => {
@@ -49,6 +50,7 @@ function PaymentSettingsPage() {
 		setContactEmail(saved.contactEmail ?? "");
 		setQrBase64(saved.qrBase64 ?? null);
 		setBillplzCollectionId(saved.billplzCollectionId ?? "");
+		setBillplzFee(((saved.billplzFeeSen ?? 125) / 100).toFixed(2));
 	}, [settingsQuery.data]);
 
 	const saveMutation = useMutation({
@@ -61,6 +63,7 @@ function PaymentSettingsPage() {
 					contactEmail,
 					qrBase64: qrCleared ? null : qrBase64,
 					billplzCollectionId,
+					billplzFeeSen: Math.round(Number.parseFloat(billplzFee) * 100) || 0,
 				},
 			});
 			if (!result.ok) {
@@ -176,6 +179,21 @@ function PaymentSettingsPage() {
 					<p className="text-xs text-muted-foreground">
 						Enables &ldquo;Pay via Billplz (FPX)&rdquo; in the Billing top-up
 						dialog. Sandbox or live follows the worker&rsquo;s BILLPLZ_MODE.
+					</p>
+				</div>
+				<div className="flex flex-col gap-2">
+					<Label htmlFor="billplz-fee">Billplz fee charged to payer (RM)</Label>
+					<Input
+						id="billplz-fee"
+						name="fee"
+						inputMode="decimal"
+						value={billplzFee}
+						onChange={(event) => setBillplzFee(event.target.value)}
+						placeholder="1.25"
+					/>
+					<p className="text-xs text-muted-foreground">
+						Added on top of the top-up amount at checkout (RM0–RM10). Set 0 to
+						absorb the fee yourself.
 					</p>
 				</div>
 				<div className="flex flex-col gap-2">

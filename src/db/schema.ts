@@ -132,6 +132,10 @@ export const topupRequest = sqliteTable(
 		method: text("method").notNull().default("manual"),
 		billId: text("bill_id"),
 		billUrl: text("bill_url"),
+		// total charged to the payer = credit amount + Billplz fee (null for
+		// rows created before fee pass-through; callbacks then compare against
+		// amountSen)
+		billAmountSen: integer("bill_amount_sen"),
 		paidAt: integer("paid_at", { mode: "timestamp" }),
 		requestedBy: text("requested_by")
 			.notNull()
@@ -420,5 +424,7 @@ export const platformSettings = sqliteTable("platform_settings", {
 	qrBase64: text("qr_base64"),
 	// Billplz collection bills are created under (sandbox or live via env)
 	billplzCollectionId: text("billplz_collection_id"),
+	// flat Billplz fee passed through to the payer, in sen (null = RM1.25)
+	billplzFeeSen: integer("billplz_fee_sen"),
 	updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
