@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { getDb } from "#/db";
 import {
 	creditLedger,
@@ -122,11 +122,28 @@ export async function handleBillplzRedirect(
  * Idempotent completion for a paid Billplz request: marks it approved and
  * applies the purpose-specific effect (credit balance or plan renewal).
  * Shared by the gateway callback and the manual check-status reconciliation.
+ *
+ * The pending → approved flip is an atomic guarded UPDATE, so of the racing
+ * paths (gateway callback, Billplz retry, manual check-status) only one wins
+ * and applies the effect — duplicates become no-ops instead of double credits.
+ * Trade-off: a crash between the claim and the effect leaves an approved
+ * request without its effect; at-most-once crediting beats double-crediting.
  */
 export async function finalizePaidBill(
 	topup: typeof topupRequest.$inferSelect,
 	billId: string,
-): Promise<"credit" | "plan_renewal"> {
+): Promise<"credit" | "plan_renewal" | "already_processed"> {
+	const db = getDb();
+	const claim = await db
+		.update(topupRequest)
+		.set({ updatedAt: new Date() })
+		.where(
+			and(eq(topupRequest.id, topup.id), eq(topupRequest.status, "pending")),
+		)
+		.returning({ id: topupRequest.id });
+	if (claim.length === 0) {
+		return "already_processed";
+	}
 	if (topup.purpose === "plan_renewal") {
 		await finalizeRenewal(topup, billId);
 		return "plan_renewal";
@@ -141,19 +158,19 @@ async function finalizeCredit(
 ): Promise<void> {
 	const db = getDb();
 	const now = new Date();
-	const [org] = await db
-		.select({ balanceSen: organization.balanceSen })
-		.from(organization)
+	// Atomic SQL increment — a read-modify-write here loses increments when
+	// two concurrent approvals interleave.
+	const [updated] = await db
+		.update(organization)
+		.set({
+			balanceSen: sql`${organization.balanceSen} + ${topup.amountSen}`,
+		})
 		.where(eq(organization.id, topup.organizationId))
-		.limit(1);
-	if (!org) {
+		.returning({ balanceSen: organization.balanceSen });
+	if (!updated) {
 		throw new Error(`Organization ${topup.organizationId} missing`);
 	}
-	const balanceSen = org.balanceSen + topup.amountSen;
-	await db
-		.update(organization)
-		.set({ balanceSen })
-		.where(eq(organization.id, topup.organizationId));
+	const balanceSen = updated.balanceSen;
 	await db.insert(creditLedger).values({
 		id: crypto.randomUUID(),
 		organizationId: topup.organizationId,
