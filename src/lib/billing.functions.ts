@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { createServerFn } from "@tanstack/react-start";
-import { and, desc, eq, like, sql } from "drizzle-orm";
+import { and, desc, eq, like, lt, or, sql } from "drizzle-orm";
 import { getDb } from "#/db";
 import {
 	creditLedger,
@@ -11,13 +11,8 @@ import {
 	user,
 } from "#/db/schema";
 import { logAudit } from "./audit.functions";
-import {
-	billplzConfigured,
-	billplzMode,
-	createBill,
-	getBill,
-} from "./billplz";
 import type { CreatedBill } from "./billplz";
+import { billplzConfigured, billplzMode, createBill, getBill } from "./billplz";
 import { finalizePaidBill, getBillplzCollectionId } from "./billplz.webhook";
 import { sendEmail } from "./email";
 import { notifyOrgAdmins } from "./notify";
@@ -265,12 +260,6 @@ export const getBillingOverview = createServerFn({ method: "GET" }).handler(
 		if (!org) {
 			throw new Error("Organization not found");
 		}
-		const ledger = await getDb()
-			.select()
-			.from(creditLedger)
-			.where(eq(creditLedger.organizationId, orgId))
-			.orderBy(desc(creditLedger.createdAt))
-			.limit(50);
 		return {
 			name: org.name,
 			state: {
@@ -280,10 +269,45 @@ export const getBillingOverview = createServerFn({ method: "GET" }).handler(
 				paidUntil: org.paidUntil,
 				status: statusFor(org, new Date()),
 			} satisfies SubscriptionState,
-			ledger,
 		};
 	},
 );
+
+/**
+ * Cursor for keyset pagination: the last row of the previous page. The (at,
+ * id) pair breaks ties between rows created in the same second — ids are
+ * random but stable, so ordering is stable across pages.
+ */
+export type PageCursor = { at: number; id: string };
+
+const LEDGER_PAGE_SIZE = 50;
+
+export const listLedgerPage = createServerFn({ method: "GET" })
+	.validator((input: { before?: PageCursor } | undefined) => input ?? {})
+	.handler(async ({ data }) => {
+		const { orgId } = await requireOrgBillingAccess();
+		const cursorFilter = data.before
+			? or(
+					lt(creditLedger.createdAt, new Date(data.before.at)),
+					and(
+						eq(creditLedger.createdAt, new Date(data.before.at)),
+						lt(creditLedger.id, data.before.id),
+					),
+				)
+			: undefined;
+		const rows = await getDb()
+			.select()
+			.from(creditLedger)
+			.where(
+				cursorFilter
+					? and(eq(creditLedger.organizationId, orgId), cursorFilter)
+					: eq(creditLedger.organizationId, orgId),
+			)
+			.orderBy(desc(creditLedger.createdAt), desc(creditLedger.id))
+			.limit(LEDGER_PAGE_SIZE + 1);
+		const hasMore = rows.length > LEDGER_PAGE_SIZE;
+		return { rows: hasMore ? rows.slice(0, LEDGER_PAGE_SIZE) : rows, hasMore };
+	});
 
 export const subscribePlan = createServerFn({ method: "POST" })
 	.validator(
@@ -649,7 +673,11 @@ export const createBillplzRenewal = createServerFn({ method: "POST" })
 		if (!PAID_PLANS.includes(planId)) {
 			return { ok: false as const, reason: "Choose a paid plan" };
 		}
-		if (!SUBSCRIPTION_MONTHS.includes(months as (typeof SUBSCRIPTION_MONTHS)[number])) {
+		if (
+			!SUBSCRIPTION_MONTHS.includes(
+				months as (typeof SUBSCRIPTION_MONTHS)[number],
+			)
+		) {
 			return { ok: false as const, reason: "Invalid renewal duration" };
 		}
 		if (!billplzConfigured()) {
@@ -755,8 +783,8 @@ export const checkBillplzStatus = createServerFn({ method: "POST" })
 			return { ok: true as const, paid: true as const, state: topup.status };
 		}
 		let bill:
-				| { paid: boolean; state: string; amountSen: number | null }
-				| undefined;
+			| { paid: boolean; state: string; amountSen: number | null }
+			| undefined;
 		try {
 			bill = await getBill(topup.billId);
 		} catch (error) {
@@ -783,10 +811,22 @@ export const checkBillplzStatus = createServerFn({ method: "POST" })
 		return { ok: true as const, paid: true as const, state: "paid" };
 	});
 
-export const listMyTopupRequests = createServerFn({ method: "GET" }).handler(
-	async () => {
+const TOPUP_PAGE_SIZE = 10;
+
+export const listMyTopupRequests = createServerFn({ method: "GET" })
+	.validator((input: { before?: PageCursor } | undefined) => input ?? {})
+	.handler(async ({ data }) => {
 		const { orgId } = await requireOrgBillingAccess();
-		return getDb()
+		const cursorFilter = data.before
+			? or(
+					lt(topupRequest.createdAt, new Date(data.before.at)),
+					and(
+						eq(topupRequest.createdAt, new Date(data.before.at)),
+						lt(topupRequest.id, data.before.id),
+					),
+				)
+			: undefined;
+		const rows = await getDb()
 			.select({
 				id: topupRequest.id,
 				amountSen: topupRequest.amountSen,
@@ -801,11 +841,16 @@ export const listMyTopupRequests = createServerFn({ method: "GET" }).handler(
 				createdAt: topupRequest.createdAt,
 			})
 			.from(topupRequest)
-			.where(eq(topupRequest.organizationId, orgId))
-			.orderBy(desc(topupRequest.createdAt))
-			.limit(10);
-	},
-);
+			.where(
+				cursorFilter
+					? and(eq(topupRequest.organizationId, orgId), cursorFilter)
+					: eq(topupRequest.organizationId, orgId),
+			)
+			.orderBy(desc(topupRequest.createdAt), desc(topupRequest.id))
+			.limit(TOPUP_PAGE_SIZE + 1);
+		const hasMore = rows.length > TOPUP_PAGE_SIZE;
+		return { rows: hasMore ? rows.slice(0, TOPUP_PAGE_SIZE) : rows, hasMore };
+	});
 
 export const listPendingTopupRequests = createServerFn({
 	method: "GET",

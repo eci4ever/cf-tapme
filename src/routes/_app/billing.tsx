@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+	useInfiniteQuery,
+	useMutation,
+	useQuery,
+	useQueryClient,
+} from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ArrowDownRight, ArrowUpRight, CreditCard, Wallet } from "lucide-react";
 import { useState } from "react";
@@ -44,7 +49,9 @@ import {
 	createBillplzTopup,
 	getBillingOverview,
 	getPaymentInstructions,
+	listLedgerPage,
 	listMyTopupRequests,
+	type PageCursor,
 	requestTopup,
 	type SubscriptionState,
 	subscribePlan,
@@ -101,11 +108,7 @@ function BillingPage() {
 		return <p className="text-sm text-muted-foreground">Loading billing…</p>;
 	}
 
-	const overview = {
-		...overviewQuery.data,
-		ledger: overviewQuery.data.ledger as LedgerRow[],
-	};
-	const { state, ledger } = overview;
+	const { state } = overviewQuery.data as { state: SubscriptionState };
 	const billplzEnabled = instructionsQuery.data?.billplzEnabled ?? false;
 
 	return (
@@ -177,16 +180,37 @@ function BillingPage() {
 			<PaymentInstructionsCard />
 			<TopupRequestsCard />
 
-			<Card>
-				<CardHeader>
-					<CardTitle>Transactions</CardTitle>
-				</CardHeader>
-				<CardContent>
-					{ledger.length === 0 ? (
-						<p className="text-sm text-muted-foreground">
-							No transactions yet.
-						</p>
-					) : (
+			<TransactionsCard />
+		</div>
+	);
+}
+
+function TransactionsCard() {
+	const query = useInfiniteQuery({
+		queryKey: ["billing", "ledger"],
+		queryFn: ({ pageParam }) => listLedgerPage({ data: { before: pageParam } }),
+		initialPageParam: undefined as PageCursor | undefined,
+		getNextPageParam: (lastPage) => {
+			const rows = lastPage.rows as LedgerRow[];
+			if (!lastPage.hasMore || rows.length === 0) {
+				return undefined;
+			}
+			const last = rows[rows.length - 1];
+			return { at: new Date(last.createdAt).getTime(), id: last.id };
+		},
+	});
+	const ledger = (query.data?.pages.flatMap((page) => page.rows) ??
+		[]) as LedgerRow[];
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>Transactions</CardTitle>
+			</CardHeader>
+			<CardContent>
+				{ledger.length === 0 ? (
+					<p className="text-sm text-muted-foreground">No transactions yet.</p>
+				) : (
+					<>
 						<Table>
 							<TableHeader>
 								<TableRow>
@@ -236,10 +260,21 @@ function BillingPage() {
 								))}
 							</TableBody>
 						</Table>
-					)}
-				</CardContent>
-			</Card>
-		</div>
+						{query.hasNextPage ? (
+							<Button
+								variant="outline"
+								size="sm"
+								className="mt-3 w-full"
+								disabled={query.isFetchingNextPage}
+								onClick={() => query.fetchNextPage()}
+							>
+								{query.isFetchingNextPage ? "Loading…" : "Load more"}
+							</Button>
+						) : null}
+					</>
+				)}
+			</CardContent>
+		</Card>
 	);
 }
 
@@ -698,11 +733,22 @@ function PaymentInstructionsCard() {
 
 function TopupRequestsCard() {
 	const queryClient = useQueryClient();
-	const requestsQuery = useQuery({
+	const requestsQuery = useInfiniteQuery({
 		queryKey: ["billing", "topup-requests"],
-		queryFn: listMyTopupRequests,
+		queryFn: ({ pageParam }) =>
+			listMyTopupRequests({ data: { before: pageParam } }),
+		initialPageParam: undefined as PageCursor | undefined,
+		getNextPageParam: (lastPage) => {
+			const rows = lastPage.rows as TopupRequestRow[];
+			if (!lastPage.hasMore || rows.length === 0) {
+				return undefined;
+			}
+			const last = rows[rows.length - 1];
+			return { at: new Date(last.createdAt).getTime(), id: last.id };
+		},
 	});
-	const requests = (requestsQuery.data ?? []) as TopupRequestRow[];
+	const requests = (requestsQuery.data?.pages.flatMap((page) => page.rows) ??
+		[]) as TopupRequestRow[];
 	const checkStatusMutation = useMutation({
 		mutationFn: async (requestId: string) => {
 			const result = await checkBillplzStatus({ data: { requestId } });
@@ -741,78 +787,91 @@ function TopupRequestsCard() {
 						No top-up requests yet.
 					</p>
 				) : (
-					<Table>
-						<TableHeader>
-							<TableRow>
-								<TableHead>Date</TableHead>
-								<TableHead>Amount</TableHead>
-								<TableHead>Reference</TableHead>
-								<TableHead>Method</TableHead>
-								<TableHead>Status</TableHead>
-								<TableHead>Note</TableHead>
-							</TableRow>
-						</TableHeader>
-						<TableBody>
-							{requests.map((request) => (
-								<TableRow key={request.id}>
-									<TableCell>
-										{formatDate(new Date(request.createdAt))}
-									</TableCell>
-									<TableCell>{formatRm(request.amountSen)}</TableCell>
-									<TableCell className="max-w-40 truncate">
-										{request.paymentRef}
-									</TableCell>
-									<TableCell>
-										{request.method === "billplz"
-											? request.purpose === "plan_renewal"
-												? `Billplz — ${request.planId ?? "plan"} × ${request.months ?? 1}m`
-												: "Billplz"
-											: "Manual"}
-									</TableCell>
-									<TableCell>
-										<Badge
-											variant={
-												request.status === "approved"
-													? "outline"
-													: request.status === "rejected"
-														? "destructive"
-														: "secondary"
-											}
-										>
-											{request.status}
-										</Badge>
-										{request.method === "billplz" &&
-										request.status === "pending" &&
-										request.billUrl ? (
-											<a
-												href={request.billUrl}
-												className="block text-xs text-primary underline underline-offset-2"
-											>
-												Resume payment
-											</a>
-										) : null}
-										{request.method === "billplz" &&
-										request.status === "pending" ? (
-											<Button
-												variant="ghost"
-												size="xs"
-												className="mt-1 -ml-2"
-												disabled={checkingId === request.id}
-												onClick={() => checkStatus(request.id)}
-											>
-												{checkingId === request.id
-													? "Checking…"
-													: "Check status"}
-											</Button>
-										) : null}
-									</TableCell>
-									<TableCell className="text-muted-foreground">
-										{request.decisionNote ?? "—"}
-									</TableCell>
+					<>
+						<Table>
+							<TableHeader>
+								<TableRow>
+									<TableHead>Date</TableHead>
+									<TableHead>Amount</TableHead>
+									<TableHead>Reference</TableHead>
+									<TableHead>Method</TableHead>
+									<TableHead>Status</TableHead>
+									<TableHead>Note</TableHead>
 								</TableRow>
-							))}
-						</TableBody>
-					</Table>
+							</TableHeader>
+							<TableBody>
+								{requests.map((request) => (
+									<TableRow key={request.id}>
+										<TableCell>
+											{formatDate(new Date(request.createdAt))}
+										</TableCell>
+										<TableCell>{formatRm(request.amountSen)}</TableCell>
+										<TableCell className="max-w-40 truncate">
+											{request.paymentRef}
+										</TableCell>
+										<TableCell>
+											{request.method === "billplz"
+												? request.purpose === "plan_renewal"
+													? `Billplz — ${request.planId ?? "plan"} × ${request.months ?? 1}m`
+													: "Billplz"
+												: "Manual"}
+										</TableCell>
+										<TableCell>
+											<Badge
+												variant={
+													request.status === "approved"
+														? "outline"
+														: request.status === "rejected"
+															? "destructive"
+															: "secondary"
+												}
+											>
+												{request.status}
+											</Badge>
+											{request.method === "billplz" &&
+											request.status === "pending" &&
+											request.billUrl ? (
+												<a
+													href={request.billUrl}
+													className="block text-xs text-primary underline underline-offset-2"
+												>
+													Resume payment
+												</a>
+											) : null}
+											{request.method === "billplz" &&
+											request.status === "pending" ? (
+												<Button
+													variant="ghost"
+													size="xs"
+													className="mt-1 -ml-2"
+													disabled={checkingId === request.id}
+													onClick={() => checkStatus(request.id)}
+												>
+													{checkingId === request.id
+														? "Checking…"
+														: "Check status"}
+												</Button>
+											) : null}
+										</TableCell>
+										<TableCell className="text-muted-foreground">
+											{request.decisionNote ?? "—"}
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+						{requestsQuery.hasNextPage ? (
+							<Button
+								variant="outline"
+								size="sm"
+								className="mt-3 w-full"
+								disabled={requestsQuery.isFetchingNextPage}
+								onClick={() => requestsQuery.fetchNextPage()}
+							>
+								{requestsQuery.isFetchingNextPage ? "Loading…" : "Load more"}
+							</Button>
+						) : null}
+					</>
 				)}
 			</CardContent>
 		</Card>
