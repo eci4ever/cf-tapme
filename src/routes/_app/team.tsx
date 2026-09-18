@@ -149,6 +149,11 @@ function TeamPage() {
 		id: string;
 		name: string;
 	} | null>(null);
+	const [roleChangeTarget, setRoleChangeTarget] = useState<{
+		userId: string;
+		memberName: string;
+		role: "member" | "supervisor" | "admin";
+	} | null>(null);
 	const removeMutation = useMutation({
 		mutationFn: async (memberId: string) => {
 			await authClient.organization.removeMember({ memberIdOrEmail: memberId });
@@ -225,6 +230,42 @@ function TeamPage() {
 					</AlertDialogFooter>
 				</AlertDialogContent>
 			</AlertDialog>
+			<AlertDialog
+				open={roleChangeTarget !== null}
+				onOpenChange={(open) => {
+					if (!open) {
+						setRoleChangeTarget(null);
+					}
+				}}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle>
+							Change role for {roleChangeTarget?.memberName}?
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							{roleChangeTarget?.role === "supervisor"
+								? "They will be able to approve leave and review attendance issues for the employees they supervise."
+								: roleChangeTarget?.role === "admin"
+									? "They will be able to manage employees, settings, and billing for this organization."
+									: "They keep their own access but lose supervisor and admin abilities."}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => {
+								if (roleChangeTarget) {
+									handleSetRole(roleChangeTarget.userId, roleChangeTarget.role);
+								}
+								setRoleChangeTarget(null);
+							}}
+						>
+							Change role
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 			<Card>
 				<CardHeader>
 					<CardTitle>Invite a teammate</CardTitle>
@@ -296,7 +337,7 @@ function TeamPage() {
 						<TableBody>
 							{membersQuery.isPending ? (
 								<TableRow>
-									<TableCell colSpan={5}>Loading...</TableCell>
+									<TableCell colSpan={5}>Loading…</TableCell>
 								</TableRow>
 							) : (
 								members.map((member) => (
@@ -333,7 +374,11 @@ function TeamPage() {
 														{member.role !== "member" ? (
 															<DropdownMenuItem
 																onClick={() =>
-																	handleSetRole(member.userId, "member")
+																	setRoleChangeTarget({
+																		userId: member.userId,
+																		memberName: member.name,
+																		role: "member",
+																	})
 																}
 															>
 																<UserPlus />
@@ -343,7 +388,11 @@ function TeamPage() {
 														{member.role !== "supervisor" ? (
 															<DropdownMenuItem
 																onClick={() =>
-																	handleSetRole(member.userId, "supervisor")
+																	setRoleChangeTarget({
+																		userId: member.userId,
+																		memberName: member.name,
+																		role: "supervisor",
+																	})
 																}
 															>
 																<UserCog />
@@ -356,7 +405,11 @@ function TeamPage() {
 														{member.role !== "admin" ? (
 															<DropdownMenuItem
 																onClick={() =>
-																	handleSetRole(member.userId, "admin")
+																	setRoleChangeTarget({
+																		userId: member.userId,
+																		memberName: member.name,
+																		role: "admin",
+																	})
 																}
 															>
 																<UserCog />
