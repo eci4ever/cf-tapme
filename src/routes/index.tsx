@@ -176,8 +176,8 @@ function LeaveMockup() {
 
 function ApprovalsMockup() {
 	const rows = [
-		{ initial: "A", name: "Aiman", detail: "Annual · 2 days" },
-		{ initial: "M", name: "Mei Lin", detail: "Sick · 1 day" },
+		{ initial: "A", name: "Aiman", detail: "Annual · 2 days", approved: true },
+		{ initial: "M", name: "Mei Lin", detail: "Sick · 1 day", approved: false },
 	];
 	return (
 		<div className="flex flex-col gap-2 text-xs">
@@ -193,8 +193,11 @@ function ApprovalsMockup() {
 						{row.name}
 						<span className="ml-1.5 text-muted-foreground">{row.detail}</span>
 					</span>
-					<Check className="size-3.5 text-emerald-600" />
-					<X className="size-3.5 text-red-500" />
+					{row.approved ? (
+						<Check className="size-3.5 text-emerald-600" />
+					) : (
+						<X className="size-3.5 text-red-500" />
+					)}
 				</div>
 			))}
 		</div>
