@@ -219,6 +219,7 @@ function AttendanceTrendCard({
 	if (trendQuery.isError || weeks.length === 0) {
 		return null;
 	}
+	const hasAnyRate = weeks.some((week) => week.rate !== null);
 	return (
 		<Card>
 			<CardHeader>
@@ -229,39 +230,46 @@ function AttendanceTrendCard({
 				</CardDescription>
 			</CardHeader>
 			<CardContent>
-				<div className="flex items-end gap-2">
-					{weeks.map((week) => {
-						const height =
-							week.rate === null ? 0 : Math.max(Math.min(week.rate, 100), 4);
-						return (
-							<div
-								key={week.weekStart}
-								className="flex min-w-0 flex-1 flex-col items-center gap-1"
-							>
-								<span className="text-[10px] tabular-nums text-muted-foreground">
-									{week.rate === null ? "—" : `${week.rate}%`}
-								</span>
-								<div className="flex h-24 w-full items-end rounded bg-muted/40">
-									<div
-										className="w-full rounded bg-primary/80"
-										style={{ height: `${height}%` }}
-									/>
-								</div>
-								<span className="text-[10px] tabular-nums text-muted-foreground">
-									{new Date(`${week.weekStart}T00:00:00Z`).toLocaleDateString(
-										"en-US",
-										{ day: "numeric", month: "short", timeZone: "UTC" },
-									)}
-								</span>
-								<span
-									className={`text-[10px] tabular-nums ${week.late > 0 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`}
+				{hasAnyRate ? (
+					<div className="flex items-end gap-2">
+						{weeks.map((week) => {
+							const height =
+								week.rate === null ? 0 : Math.max(Math.min(week.rate, 100), 4);
+							return (
+								<div
+									key={week.weekStart}
+									className="flex min-w-0 flex-1 flex-col items-center gap-1"
 								>
-									{week.late} late
-								</span>
-							</div>
-						);
-					})}
-				</div>
+									<span className="text-[10px] tabular-nums text-muted-foreground">
+										{week.rate === null ? "—" : `${week.rate}%`}
+									</span>
+									<div className="flex h-24 w-full items-end rounded bg-muted/40">
+										<div
+											className="w-full rounded bg-primary/80"
+											style={{ height: `${height}%` }}
+										/>
+									</div>
+									<span className="text-[10px] tabular-nums text-muted-foreground">
+										{new Date(`${week.weekStart}T00:00:00Z`).toLocaleDateString(
+											"en-US",
+											{ day: "numeric", month: "short", timeZone: "UTC" },
+										)}
+									</span>
+									<span
+										className={`text-[10px] tabular-nums ${week.late > 0 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`}
+									>
+										{week.late} late
+									</span>
+								</div>
+							);
+						})}
+					</div>
+				) : (
+					<p className="flex min-h-24 items-center justify-center rounded bg-muted/40 px-4 text-center text-sm text-muted-foreground">
+						Not enough data yet — the trend appears once your team starts
+						clocking in.
+					</p>
+				)}
 			</CardContent>
 		</Card>
 	);
