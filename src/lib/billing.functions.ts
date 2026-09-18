@@ -17,6 +17,7 @@ import {
 	createBill,
 	getBill,
 } from "./billplz";
+import type { CreatedBill } from "./billplz";
 import { finalizePaidBill, getBillplzCollectionId } from "./billplz.webhook";
 import { sendEmail } from "./email";
 import { notifyOrgAdmins } from "./notify";
@@ -689,7 +690,7 @@ export const createBillplzRenewal = createServerFn({ method: "POST" })
 			/\/$/,
 			"",
 		);
-		let bill;
+		let bill: CreatedBill | undefined;
 		try {
 			bill = await createBill({
 				collectionId,
@@ -747,13 +748,15 @@ export const checkBillplzStatus = createServerFn({ method: "POST" })
 				),
 			)
 			.limit(1);
-		if (!topup || topup.method !== "billplz" || !topup.billId) {
+		if (topup?.method !== "billplz" || !topup.billId) {
 			return { ok: false as const, reason: "Request not found" };
 		}
 		if (topup.status !== "pending") {
 			return { ok: true as const, paid: true as const, state: topup.status };
 		}
-		let bill;
+		let bill:
+				| { paid: boolean; state: string; amountSen: number | null }
+				| undefined;
 		try {
 			bill = await getBill(topup.billId);
 		} catch (error) {
