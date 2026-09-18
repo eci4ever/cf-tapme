@@ -5,7 +5,7 @@ import {
 	redirect,
 	useRouter,
 } from "@tanstack/react-router";
-import { Building2, CalendarCheck, Mail } from "lucide-react";
+import { Building2, CalendarCheck, Hourglass, Mail } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -231,6 +231,25 @@ function OnboardingPage() {
 									</div>
 								</div>
 							))}
+						</CardContent>
+					</Card>
+				) : null}
+
+				{invitations.length === 0 ? (
+					<Card className="border-dashed">
+						<CardContent className="flex items-start gap-3 py-4">
+							<Hourglass className="mt-0.5 size-4 shrink-0 text-muted-foreground" />
+							<div className="text-sm text-muted-foreground">
+								<p className="font-medium text-foreground">
+									Waiting for your team to invite you?
+								</p>
+								<p className="mt-1">
+									If your company administrator is going to invite you, sign
+									out and sign in again once the invitation arrives — it will
+									show up on this page. Otherwise, you can create your own
+									company below.
+								</p>
+							</div>
 						</CardContent>
 					</Card>
 				) : null}
