@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, redirect, useBlocker } from "@tanstack/react-router";
 import {
 	type ColumnDef,
 	getCoreRowModel,
@@ -997,6 +997,25 @@ function EmployeeFormDialog({
 		{ userId: string; name: string; email: string }[]
 	>([]);
 	const [linkTarget, setLinkTarget] = useState<string>("");
+	const [baseline, setBaseline] = useState<string>("");
+	const [confirmDiscard, setConfirmDiscard] = useState(false);
+	const isDirty = open && JSON.stringify({ ...form, linkTarget }) !== baseline;
+	useBlocker({
+		shouldBlockFn: () =>
+			open &&
+			isDirty &&
+			!window.confirm("Discard unsaved changes to this employee?"),
+	});
+	useEffect(() => {
+		if (!open || !isDirty) {
+			return;
+		}
+		const handler = (event: BeforeUnloadEvent) => {
+			event.preventDefault();
+		};
+		window.addEventListener("beforeunload", handler);
+		return () => window.removeEventListener("beforeunload", handler);
+	}, [open, isDirty]);
 	const saveMutation = useMutation({
 		mutationFn: async (input: { linkTarget?: string }) => {
 			if (editing) {
@@ -1072,42 +1091,51 @@ function EmployeeFormDialog({
 		if (!open) {
 			return;
 		}
-		setForm(
-			editing
-				? {
-						id: editing.id,
-						name: editing.name,
-						employeeNo: editing.employeeNo,
-						position: editing.position ?? "",
-						shift: editing.shift,
-						joinedAt: editing.joinedAt
-							? new Date(editing.joinedAt).toISOString().slice(0, 10)
-							: "",
-						supervisorId: editing.supervisorId ?? "",
-						siteId: editing.siteId ?? "none",
-					}
-				: {
-						name: "",
-						employeeNo: "",
-						position: "",
-						shift: "normal",
-						joinedAt: "",
-						supervisorId: "",
-						siteId: "none",
-					},
-		);
-		setLinkTarget(initialMemberId ?? "");
+		const seed: EmployeeForm = editing
+			? {
+					id: editing.id,
+					name: editing.name,
+					employeeNo: editing.employeeNo,
+					position: editing.position ?? "",
+					shift: editing.shift,
+					joinedAt: editing.joinedAt
+						? new Date(editing.joinedAt).toISOString().slice(0, 10)
+						: "",
+					supervisorId: editing.supervisorId ?? "",
+					siteId: editing.siteId ?? "none",
+				}
+			: {
+					name: "",
+					employeeNo: "",
+					position: "",
+					shift: "normal",
+					joinedAt: "",
+					supervisorId: "",
+					siteId: "none",
+				};
+		const seedLinkTarget = initialMemberId ?? "";
+		setForm(seed);
+		setLinkTarget(seedLinkTarget);
+		setBaseline(JSON.stringify({ ...seed, linkTarget: seedLinkTarget }));
 		listLinkableMembers()
 			.then(setLinkable)
 			.catch(() => setLinkable([]));
 		if (!editing) {
 			suggestEmployeeNo()
-				.then(({ suggestion }) =>
-					setForm((previous) => ({
-						...previous,
-						employeeNo: previous.employeeNo || suggestion,
-					})),
-				)
+				.then(({ suggestion }) => {
+					setForm((previous) => {
+						const next = {
+							...previous,
+							employeeNo: previous.employeeNo || suggestion,
+						};
+						// keep the baseline in step so the auto-filled number does
+						// not count as an unsaved change
+						setBaseline(
+							JSON.stringify({ ...next, linkTarget: seedLinkTarget }),
+						);
+						return next;
+					});
+				})
 				.catch(() => {});
 		}
 	}, [open, editing, initialMemberId]);
@@ -1118,170 +1146,210 @@ function EmployeeFormDialog({
 	}
 
 	return (
-		<Dialog open={open} onOpenChange={onOpenChange}>
-			<DialogContent>
-				<DialogHeader>
-					<DialogTitle>
-						{editing ? `Edit ${editing.name}` : "Add employee"}
-					</DialogTitle>
-					<DialogDescription>
-						{editing
-							? "Update employee details and shift type."
-							: "Employees without an account are keyed in manually by admins."}
-					</DialogDescription>
-				</DialogHeader>
-				<form onSubmit={handleSubmit} className="flex flex-col gap-4">
-					<div className="grid gap-4 sm:grid-cols-2">
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="employee-name">Name</Label>
-							<Input
-								id="employee-name"
-								value={form.name}
-								onChange={(event) =>
-									setForm({ ...form, name: event.target.value })
-								}
-								required
-							/>
-						</div>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="employee-no">Employee no</Label>
-							<Input
-								id="employee-no"
-								placeholder="EMP-001"
-								value={form.employeeNo}
-								onChange={(event) =>
-									setForm({ ...form, employeeNo: event.target.value })
-								}
-								required
-							/>
-						</div>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="employee-position">Position</Label>
-							<Input
-								id="employee-position"
-								placeholder="Designer"
-								value={form.position}
-								onChange={(event) =>
-									setForm({ ...form, position: event.target.value })
-								}
-							/>
-						</div>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="employee-shift">Shift</Label>
-							<Select
-								value={form.shift}
-								onValueChange={(value) => setForm({ ...form, shift: value })}
+		<>
+			<Dialog
+				open={open}
+				onOpenChange={(next) => {
+					if (!next && isDirty) {
+						setConfirmDiscard(true);
+						return;
+					}
+					onOpenChange(next);
+				}}
+			>
+				<AlertDialog
+					open={confirmDiscard}
+					onOpenChange={(next) => {
+						if (!next) {
+							setConfirmDiscard(false);
+						}
+					}}
+				>
+					<AlertDialogContent>
+						<AlertDialogHeader>
+							<AlertDialogTitle>Discard unsaved changes?</AlertDialogTitle>
+							<AlertDialogDescription>
+								You have edited this employee without saving. Closing now will
+								lose your changes.
+							</AlertDialogDescription>
+						</AlertDialogHeader>
+						<AlertDialogFooter>
+							<AlertDialogCancel>Keep editing</AlertDialogCancel>
+							<AlertDialogAction
+								onClick={() => {
+									setConfirmDiscard(false);
+									onOpenChange(false);
+								}}
 							>
-								<SelectTrigger id="employee-shift" className="w-full">
-									<SelectValue />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectGroup>
-										<SelectItem value="normal">Normal</SelectItem>
-										<SelectItem value="flexi">Flexi</SelectItem>
-									</SelectGroup>
-								</SelectContent>
-							</Select>
-						</div>
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="employee-joined">Joined date</Label>
-							<Input
-								id="employee-joined"
-								type="date"
-								value={form.joinedAt}
-								onChange={(event) =>
-									setForm({ ...form, joinedAt: event.target.value })
-								}
-							/>
-						</div>
-						{editing ? (
+								Discard changes
+							</AlertDialogAction>
+						</AlertDialogFooter>
+					</AlertDialogContent>
+				</AlertDialog>
+				<DialogContent>
+					<DialogHeader>
+						<DialogTitle>
+							{editing ? `Edit ${editing.name}` : "Add employee"}
+						</DialogTitle>
+						<DialogDescription>
+							{editing
+								? "Update employee details and shift type."
+								: "Employees without an account are keyed in manually by admins."}
+						</DialogDescription>
+					</DialogHeader>
+					<form onSubmit={handleSubmit} className="flex flex-col gap-4">
+						<div className="grid gap-4 sm:grid-cols-2">
 							<div className="flex flex-col gap-2">
-								<Label htmlFor="employee-supervisor">Supervisor</Label>
-								<Select
-									value={form.supervisorId}
-									onValueChange={(value) =>
-										setForm({ ...form, supervisorId: value })
+								<Label htmlFor="employee-name">Name</Label>
+								<Input
+									id="employee-name"
+									value={form.name}
+									onChange={(event) =>
+										setForm({ ...form, name: event.target.value })
 									}
+									required
+								/>
+							</div>
+							<div className="flex flex-col gap-2">
+								<Label htmlFor="employee-no">Employee no</Label>
+								<Input
+									id="employee-no"
+									placeholder="EMP-001"
+									value={form.employeeNo}
+									onChange={(event) =>
+										setForm({ ...form, employeeNo: event.target.value })
+									}
+									required
+								/>
+							</div>
+							<div className="flex flex-col gap-2">
+								<Label htmlFor="employee-position">Position</Label>
+								<Input
+									id="employee-position"
+									placeholder="Designer"
+									value={form.position}
+									onChange={(event) =>
+										setForm({ ...form, position: event.target.value })
+									}
+								/>
+							</div>
+							<div className="flex flex-col gap-2">
+								<Label htmlFor="employee-shift">Shift</Label>
+								<Select
+									value={form.shift}
+									onValueChange={(value) => setForm({ ...form, shift: value })}
 								>
-									<SelectTrigger id="employee-supervisor" className="w-full">
+									<SelectTrigger id="employee-shift" className="w-full">
+										<SelectValue />
+									</SelectTrigger>
+									<SelectContent>
+										<SelectGroup>
+											<SelectItem value="normal">Normal</SelectItem>
+											<SelectItem value="flexi">Flexi</SelectItem>
+										</SelectGroup>
+									</SelectContent>
+								</Select>
+							</div>
+							<div className="flex flex-col gap-2">
+								<Label htmlFor="employee-joined">Joined date</Label>
+								<Input
+									id="employee-joined"
+									type="date"
+									value={form.joinedAt}
+									onChange={(event) =>
+										setForm({ ...form, joinedAt: event.target.value })
+									}
+								/>
+							</div>
+							{editing ? (
+								<div className="flex flex-col gap-2">
+									<Label htmlFor="employee-supervisor">Supervisor</Label>
+									<Select
+										value={form.supervisorId}
+										onValueChange={(value) =>
+											setForm({ ...form, supervisorId: value })
+										}
+									>
+										<SelectTrigger id="employee-supervisor" className="w-full">
+											<SelectValue placeholder="None" />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectGroup>
+												<SelectItem value="none">— No supervisor —</SelectItem>
+												{supervisorOptions.map((candidate) => (
+													<SelectItem key={candidate.id} value={candidate.id}>
+														{candidate.name} ({candidate.employeeNo})
+													</SelectItem>
+												))}
+											</SelectGroup>
+										</SelectContent>
+									</Select>
+								</div>
+							) : null}
+							<div className="flex flex-col gap-2">
+								<Label htmlFor="employee-site">Work location</Label>
+								<Select
+									value={form.siteId}
+									onValueChange={(value) => setForm({ ...form, siteId: value })}
+								>
+									<SelectTrigger id="employee-site" className="w-full">
 										<SelectValue placeholder="None" />
 									</SelectTrigger>
 									<SelectContent>
 										<SelectGroup>
-											<SelectItem value="none">— No supervisor —</SelectItem>
-											{supervisorOptions.map((candidate) => (
-												<SelectItem key={candidate.id} value={candidate.id}>
-													{candidate.name} ({candidate.employeeNo})
+											<SelectItem value="none">— No site —</SelectItem>
+											{sites.map((site) => (
+												<SelectItem key={site.id} value={site.id}>
+													{site.name}
 												</SelectItem>
 											))}
 										</SelectGroup>
 									</SelectContent>
 								</Select>
 							</div>
-						) : null}
-						<div className="flex flex-col gap-2">
-							<Label htmlFor="employee-site">Work location</Label>
-							<Select
-								value={form.siteId}
-								onValueChange={(value) => setForm({ ...form, siteId: value })}
-							>
-								<SelectTrigger id="employee-site" className="w-full">
-									<SelectValue placeholder="None" />
-								</SelectTrigger>
-								<SelectContent>
-									<SelectGroup>
-										<SelectItem value="none">— No site —</SelectItem>
-										{sites.map((site) => (
-											<SelectItem key={site.id} value={site.id}>
-												{site.name}
-											</SelectItem>
-										))}
-									</SelectGroup>
-								</SelectContent>
-							</Select>
+							{linkable.length > 0 ? (
+								<div className="flex flex-col gap-2">
+									<Label htmlFor="employee-link">
+										Link member account (optional)
+									</Label>
+									<Select value={linkTarget} onValueChange={setLinkTarget}>
+										<SelectTrigger id="employee-link" className="w-full">
+											<SelectValue
+												placeholder={
+													editing?.linkedEmail
+														? editing.linkedEmail
+														: "Select a member to link"
+												}
+											/>
+										</SelectTrigger>
+										<SelectContent>
+											<SelectGroup>
+												{linkable.map((member) => (
+													<SelectItem key={member.userId} value={member.userId}>
+														{member.name} ({member.email})
+													</SelectItem>
+												))}
+											</SelectGroup>
+										</SelectContent>
+									</Select>
+									<p className="text-xs text-muted-foreground">
+										Skip to key in without an account — can be linked later.
+									</p>
+								</div>
+							) : null}
 						</div>
-						{linkable.length > 0 ? (
-							<div className="flex flex-col gap-2">
-								<Label htmlFor="employee-link">
-									Link member account (optional)
-								</Label>
-								<Select value={linkTarget} onValueChange={setLinkTarget}>
-									<SelectTrigger id="employee-link" className="w-full">
-										<SelectValue
-											placeholder={
-												editing?.linkedEmail
-													? editing.linkedEmail
-													: "Select a member to link"
-											}
-										/>
-									</SelectTrigger>
-									<SelectContent>
-										<SelectGroup>
-											{linkable.map((member) => (
-												<SelectItem key={member.userId} value={member.userId}>
-													{member.name} ({member.email})
-												</SelectItem>
-											))}
-										</SelectGroup>
-									</SelectContent>
-								</Select>
-								<p className="text-xs text-muted-foreground">
-									Skip to key in without an account — can be linked later.
-								</p>
-							</div>
-						) : null}
-					</div>
-					<DialogFooter>
-						<Button type="submit" disabled={saveMutation.isPending}>
-							{saveMutation.isPending
-								? "Saving…"
-								: editing
-									? "Save changes"
-									: "Add employee"}
-						</Button>
-					</DialogFooter>
-				</form>
-			</DialogContent>
-		</Dialog>
+						<DialogFooter>
+							<Button type="submit" disabled={saveMutation.isPending}>
+								{saveMutation.isPending
+									? "Saving…"
+									: editing
+										? "Save changes"
+										: "Add employee"}
+							</Button>
+						</DialogFooter>
+					</form>
+				</DialogContent>
+			</Dialog>
+		</>
 	);
 }
