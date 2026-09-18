@@ -52,6 +52,14 @@ function createAuth() {
 				});
 			},
 		},
+		advanced: {
+			ipAddress: {
+				// Behind Cloudflare the socket IP is always an edge IP — the real
+				// client only arrives in CF-Connecting-IP. Without this, rate
+				// limiting buckets every visitor under one shared address.
+				ipAddressHeaders: ["cf-connecting-ip"],
+			},
+		},
 		rateLimit: {
 			enabled: true,
 			window: 60,
