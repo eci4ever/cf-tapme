@@ -22,6 +22,17 @@ function AppErrorComponent() {
 	);
 }
 
+// Slim top bar shown when a navigation takes longer than defaultPendingMs —
+// without it, a slow route transition leaves the previous page frozen-looking.
+function AppPendingComponent() {
+	return (
+		<div
+			aria-hidden
+			className="fixed inset-x-0 top-0 z-[100] h-1 animate-pulse bg-primary"
+		/>
+	);
+}
+
 export function getRouter() {
 	const context = getContext();
 
@@ -31,6 +42,8 @@ export function getRouter() {
 		scrollRestoration: true,
 		defaultPreload: "intent",
 		defaultPreloadStaleTime: 0,
+		defaultPendingComponent: AppPendingComponent,
+		defaultPendingMs: 300,
 		defaultErrorComponent: AppErrorComponent,
 	});
 
