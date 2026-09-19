@@ -37,6 +37,8 @@ type NavItem = {
 	icon: LucideIcon;
 	adminOnly?: boolean;
 	orgAdminOnly?: boolean;
+	/** match only this exact path — for items that are prefixes of others (e.g. /admin vs /admin/users) */
+	exact?: boolean;
 };
 
 type NavGroup = {
@@ -76,6 +78,7 @@ export const navGroups: NavGroup[] = [
 				to: "/admin",
 				icon: Gauge,
 				adminOnly: true,
+				exact: true,
 			},
 			{ title: "Users", to: "/admin/users", icon: UsersRound, adminOnly: true },
 			{
@@ -141,8 +144,10 @@ export function AppSidebar() {
 											<SidebarMenuButton
 												asChild
 												isActive={
-													pathname === item.to ||
-													pathname.startsWith(`${item.to}/`)
+													item.exact
+														? pathname === item.to
+														: pathname === item.to ||
+															pathname.startsWith(`${item.to}/`)
 												}
 												tooltip={item.title}
 											>
