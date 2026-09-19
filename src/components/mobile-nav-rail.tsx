@@ -1,5 +1,9 @@
 import { Link, useRouteContext, useRouterState } from "@tanstack/react-router";
-import { navGroups, visibleItems } from "#/components/app-sidebar";
+import {
+	isItemActive,
+	navGroups,
+	visibleItems,
+} from "#/components/app-sidebar";
 import { NavUser } from "#/components/nav-user";
 import { OrgSwitcher } from "#/components/org-switcher";
 import {
@@ -48,10 +52,7 @@ export function MobileNavRail() {
 									<SidebarMenuItem key={item.to}>
 										<SidebarMenuButton
 											asChild
-											isActive={
-												pathname === item.to ||
-												pathname.startsWith(`${item.to}/`)
-											}
+											isActive={isItemActive(item, pathname)}
 											tooltip={item.title}
 										>
 											<Link to={item.to}>

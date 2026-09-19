@@ -103,6 +103,13 @@ export const navGroups: NavGroup[] = [
 	},
 ];
 
+export function isItemActive(item: NavItem, pathname: string): boolean {
+	if (item.exact) {
+		return pathname === item.to;
+	}
+	return pathname === item.to || pathname.startsWith(`${item.to}/`);
+}
+
 export function visibleItems(
 	group: NavGroup,
 	isOrgAdmin: boolean,
@@ -143,12 +150,7 @@ export function AppSidebar() {
 										<SidebarMenuItem key={item.to}>
 											<SidebarMenuButton
 												asChild
-												isActive={
-													item.exact
-														? pathname === item.to
-														: pathname === item.to ||
-															pathname.startsWith(`${item.to}/`)
-												}
+												isActive={isItemActive(item, pathname)}
 												tooltip={item.title}
 											>
 												<Link to={item.to}>
