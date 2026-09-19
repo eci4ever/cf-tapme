@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { createFileRoute, redirect, useBlocker } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import {
 	type ColumnDef,
 	getCoreRowModel,
@@ -1000,12 +1000,6 @@ function EmployeeFormDialog({
 	const [baseline, setBaseline] = useState<string>("");
 	const [confirmDiscard, setConfirmDiscard] = useState(false);
 	const isDirty = open && JSON.stringify({ ...form, linkTarget }) !== baseline;
-	useBlocker({
-		shouldBlockFn: () =>
-			open &&
-			isDirty &&
-			!window.confirm("Discard unsaved changes to this employee?"),
-	});
 	useEffect(() => {
 		if (!open || !isDirty) {
 			return;
