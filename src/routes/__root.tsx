@@ -19,6 +19,23 @@ interface MyRouterContext {
 // Adds the theme class before first paint and keeps a single
 // theme-color meta in sync with the resolved theme (system or
 // toggled) so mobile browser chrome matches the background.
+const SEO_JSON_LD = JSON.stringify({
+	"@context": "https://schema.org",
+	"@type": "WebApplication",
+	name: "TapMe",
+	applicationCategory: "BusinessApplication",
+	operatingSystem: "Web",
+	description:
+		"Attendance tracking, leave approvals, and payroll-ready reports for Malaysian SMEs.",
+	url: "https://tapme.nimfi.dev/",
+	offers: {
+		"@type": "Offer",
+		price: "0",
+		priceCurrency: "MYR",
+		description: "Free for up to 5 employees. Pro from RM29/month.",
+	},
+});
+
 const THEME_BOOTSTRAP = `(function(){try{
 var d=localStorage.getItem("tapme-theme")==="dark"||(localStorage.getItem("tapme-theme")!=="light"&&matchMedia("(prefers-color-scheme: dark)").matches);
 if(d)document.documentElement.classList.add("dark");
@@ -39,7 +56,66 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				content: "width=device-width, initial-scale=1, viewport-fit=cover",
 			},
 			{
-				title: "TapMe",
+				title: "TapMe — Attendance Tracking for Malaysian SMEs",
+			},
+			{
+				name: "description",
+				content:
+					"Clock-ins, shifts, leave approvals, and payroll-ready reports in one place. Mobile-first attendance tracking for Malaysian SMEs — free for your first 5 employees.",
+			},
+			{
+				rel: "canonical",
+				href: "https://tapme.nimfi.dev/",
+			},
+			{
+				property: "og:type",
+				content: "website",
+			},
+			{
+				property: "og:site_name",
+				content: "TapMe",
+			},
+			{
+				property: "og:title",
+				content: "TapMe — Attendance Tracking for Malaysian SMEs",
+			},
+			{
+				property: "og:description",
+				content:
+					"Clock-ins, shifts, leave approvals, and payroll-ready reports in one place. Free for your first 5 employees.",
+			},
+			{
+				property: "og:url",
+				content: "https://tapme.nimfi.dev/",
+			},
+			{
+				property: "og:image",
+				content: "https://tapme.nimfi.dev/icons/og-image.png",
+			},
+			{
+				property: "og:image:width",
+				content: "1200",
+			},
+			{
+				property: "og:image:height",
+				content: "630",
+			},
+			{
+				name: "twitter:card",
+				content: "summary_large_image",
+			},
+			{
+				name: "twitter:title",
+				content: "TapMe — Attendance Tracking for Malaysian SMEs",
+			},
+			{
+				name: "twitter:description",
+				content:
+					"Clock-ins, shifts, leave approvals, and payroll-ready reports in one place. Free for your first 5 employees.",
+			},
+			{
+				name: "twitter:image",
+				content: "https://tapme.nimfi.dev/icons/og-image.png",
 			},
 		],
 		links: [
@@ -75,6 +151,11 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<script
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: static bootstrap script, no user input
 					dangerouslySetInnerHTML={{ __html: THEME_BOOTSTRAP }}
+				/>
+				<script
+					type="application/ld+json"
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: static structured data, no user input
+					dangerouslySetInnerHTML={{ __html: SEO_JSON_LD }}
 				/>
 			</head>
 			<body>

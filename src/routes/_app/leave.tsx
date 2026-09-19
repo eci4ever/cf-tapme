@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { PageSkeleton } from "#/components/loading-skeletons";
 import { StatusBadge } from "#/components/status-badge";
 import {
 	AlertDialog,
@@ -59,7 +60,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { Textarea } from "#/components/ui/textarea";
 import { formatDate } from "#/lib/dates";
-import { PageSkeleton } from "#/components/loading-skeletons";
 import {
 	applyLeave,
 	cancelLeave,

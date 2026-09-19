@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
+import { LinesSkeleton } from "#/components/loading-skeletons";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -83,7 +84,6 @@ import {
 	updateSchedule,
 } from "#/lib/org-settings.functions";
 import { formatMinutes } from "#/lib/schedule";
-import { LinesSkeleton } from "#/components/loading-skeletons";
 
 export const Route = createFileRoute("/_app/settings")({
 	staticData: { title: "Settings" },

@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { LinesSkeleton } from "#/components/loading-skeletons";
 import {
 	Card,
 	CardContent,
@@ -9,7 +10,6 @@ import {
 } from "#/components/ui/card";
 import { AUDIT_ACTION_LABELS, AUDIT_TONE_CLASS } from "#/lib/audit-labels";
 import { listMyActivity } from "#/lib/auth.functions";
-import { LinesSkeleton } from "#/components/loading-skeletons";
 
 export const Route = createFileRoute("/_app/account_/activity")({
 	staticData: { title: "My activity" },

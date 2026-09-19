@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { PageSkeleton } from "#/components/loading-skeletons";
 import { RoleBadge } from "#/components/role-badge";
 import {
 	AlertDialog,
@@ -44,7 +45,6 @@ import { getOrgAdminDetail, listOrgLedger } from "#/lib/admin.functions";
 import { adminAdjustCredit } from "#/lib/billing.functions";
 import { formatDate } from "#/lib/dates";
 import { formatRm, parseRmToSen } from "#/lib/subscription";
-import { PageSkeleton } from "#/components/loading-skeletons";
 
 export const Route = createFileRoute("/_app/admin/organizations_/$orgId")({
 	staticData: { title: "Organization detail" },

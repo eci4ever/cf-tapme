@@ -2,6 +2,7 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
+import { LinesSkeleton } from "#/components/loading-skeletons";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -15,7 +16,6 @@ import { getPlatformStats, runCronNow } from "#/lib/admin.functions";
 import { authClient } from "#/lib/auth-client";
 import { listOrgBilling } from "#/lib/billing.functions";
 import { formatDate } from "#/lib/dates";
-import { LinesSkeleton } from "#/components/loading-skeletons";
 
 export const Route = createFileRoute("/_app/admin/")({
 	staticData: { title: "Platform admin" },

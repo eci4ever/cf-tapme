@@ -3,6 +3,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Send, UserCog, UserMinus, UserPlus, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { TableRowsSkeleton } from "#/components/loading-skeletons";
 import { RoleBadge } from "#/components/role-badge";
 import {
 	AlertDialog,
@@ -55,7 +56,6 @@ import {
 	listOrgMembers,
 } from "#/lib/org.functions";
 import { setMemberRole } from "#/lib/org-settings.functions";
-import { TableRowsSkeleton } from "#/components/loading-skeletons";
 
 export const Route = createFileRoute("/_app/team")({
 	staticData: { title: "Team" },

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { AppSidebar } from "#/components/app-sidebar";
 import { MobileNavRail } from "#/components/mobile-nav-rail";
 import { NotificationBell } from "#/components/notification-bell";
@@ -22,6 +23,9 @@ export function PageShell({
 	title: string;
 	children: React.ReactNode;
 }) {
+	useEffect(() => {
+		document.title = `${title} · TapMe`;
+	}, [title]);
 	return (
 		<SidebarProvider>
 			<MobileNavRail />

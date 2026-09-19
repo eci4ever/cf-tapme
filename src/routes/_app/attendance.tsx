@@ -4,6 +4,10 @@ import { Check, LogIn, LogOut, PlusSquare, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AttendanceHeatmap } from "#/components/attendance-heatmap";
+import {
+	PageSkeleton,
+	TableRowsSkeleton,
+} from "#/components/loading-skeletons";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -48,10 +52,6 @@ import {
 } from "#/lib/attendance.functions";
 import { formatDate, formatTime } from "#/lib/dates";
 import { getPosition } from "#/lib/geolocation";
-import {
-	PageSkeleton,
-	TableRowsSkeleton,
-} from "#/components/loading-skeletons";
 import {
 	type ClockInStatus,
 	type ClockOutStatus,

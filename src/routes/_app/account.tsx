@@ -4,6 +4,7 @@ import { CheckCircle2, KeyRound, ShieldCheck, X, XCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { TableRowsSkeleton } from "#/components/loading-skeletons";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -47,7 +48,6 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "#/components/ui/tabs";
 import { authClient } from "#/lib/auth-client";
 import { formatDate } from "#/lib/dates";
-import { TableRowsSkeleton } from "#/components/loading-skeletons";
 
 export const Route = createFileRoute("/_app/account")({
 	staticData: { title: "Account" },
