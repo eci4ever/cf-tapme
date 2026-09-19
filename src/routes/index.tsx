@@ -575,6 +575,16 @@ function CtaBand() {
 				<Button size="lg" asChild>
 					<Link to="/signup">Create your workspace</Link>
 				</Button>
+				<p className="text-sm text-muted-foreground">
+					Questions? Email us at{" "}
+					<a
+						href="mailto:support@nimfi.dev"
+						className="font-medium text-primary hover:underline"
+					>
+						support@nimfi.dev
+					</a>{" "}
+					— we reply within one business day.
+				</p>
 			</div>
 		</section>
 	);
@@ -602,6 +612,9 @@ function SiteFooter() {
 					</a>
 					<a href="#faq" className="hover:text-foreground">
 						FAQ
+					</a>
+					<a href="mailto:support@nimfi.dev" className="hover:text-foreground">
+						Contact
 					</a>
 				</nav>
 				<p>© {new Date().getFullYear()} · Built for Malaysian SMEs</p>
