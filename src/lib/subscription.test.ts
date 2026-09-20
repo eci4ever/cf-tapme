@@ -5,6 +5,8 @@ import {
 	GRACE_DAYS,
 	PLANS,
 	parseRmToSen,
+	planTermPriceSen,
+	termDiscountLabel,
 	WARN_DAYS,
 } from "./subscription";
 
@@ -97,7 +99,18 @@ describe("plans and constants", () => {
 	it("defines prices in sen", () => {
 		expect(PLANS.free.priceSen).toBe(0);
 		expect(PLANS.pro.priceSen).toBe(2900);
-		expect(PLANS.business.priceSen).toBe(5900);
+		expect(PLANS.business.priceSen).toBe(7900);
+	});
+
+	it("applies term discounts (quarter −10%, year −20%)", () => {
+		expect(planTermPriceSen("pro", 1)).toBe(2900);
+		expect(planTermPriceSen("pro", 3)).toBe(7830);
+		expect(planTermPriceSen("pro", 12)).toBe(27840);
+		expect(planTermPriceSen("business", 3)).toBe(21330);
+		expect(planTermPriceSen("business", 12)).toBe(75840);
+		expect(termDiscountLabel(3)).toBe("save 10%");
+		expect(termDiscountLabel(12)).toBe("save 20%");
+		expect(termDiscountLabel(1)).toBeNull();
 	});
 
 	it("defines grace and warning windows of 7 days", () => {

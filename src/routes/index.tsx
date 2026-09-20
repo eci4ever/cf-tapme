@@ -393,7 +393,7 @@ const plans = [
 		popular: false,
 	},
 	{
-		name: "Pro",
+		name: "Starter",
 		price: "RM29",
 		period: "/month",
 		seats: "Up to 25 employees",
@@ -401,8 +401,8 @@ const plans = [
 		popular: true,
 	},
 	{
-		name: "Business",
-		price: "RM59",
+		name: "Pro",
+		price: "RM79",
 		period: "/month",
 		seats: "Unlimited employees",
 		bestFor: "For larger operations",
@@ -511,7 +511,7 @@ const faqs = [
 	{
 		question: "How does billing work?",
 		answer:
-			"Subscriptions are paid from your credit balance. Top up whenever you like and choose a 1, 3, 6, or 12 month term. Cancel anytime — you keep access until the end of the paid term, then drop back to Free.",
+			"Subscriptions are paid from your credit balance. Top up whenever you like and choose a 1, 3, or 12 month term — pre-paying quarterly saves 10% and yearly saves 20%. Cancel anytime — you keep access until the end of the paid term, then drop back to Free.",
 	},
 	{
 		question: "Does it work on phones?",

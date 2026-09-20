@@ -48,6 +48,7 @@ import {
 import { formatDate } from "#/lib/dates";
 import {
 	formatRm,
+	PLANS,
 	type PlanId,
 	type SubscriptionStatus,
 } from "#/lib/subscription";
@@ -136,7 +137,9 @@ function OrganizationsAdminPage() {
 			header: "Plan",
 			cell: ({ row }) => (
 				<div>
-					<Badge variant="secondary">{row.original.plan}</Badge>
+					<Badge variant="secondary">
+						{PLANS[row.original.plan as PlanId]?.name ?? row.original.plan}
+					</Badge>
 					{row.original.pendingPlan &&
 					row.original.pendingPlan !== row.original.plan ? (
 						<span className="ml-1 text-xs text-muted-foreground">

@@ -25,6 +25,7 @@ import {
 	PAID_PLANS,
 	PLANS,
 	type PlanId,
+	planTermPriceSen,
 	SUBSCRIPTION_MONTHS,
 	type SubscriptionStatus,
 	statusFor,
@@ -360,7 +361,7 @@ export const subscribePlan = createServerFn({ method: "POST" })
 			};
 		}
 
-		const priceSen = PLANS[planId].priceSen * months;
+		const priceSen = planTermPriceSen(planId, months);
 		if (org.balanceSen < priceSen) {
 			return {
 				ok: false as const,
@@ -710,7 +711,7 @@ export const createBillplzRenewal = createServerFn({ method: "POST" })
 				reason: "You already have a pending top-up request",
 			};
 		}
-		const priceSen = PLANS[planId].priceSen * months;
+		const priceSen = planTermPriceSen(planId, months);
 		const settings = await readPaymentSettings();
 		const feeSen = settings?.billplzFeeSen ?? 125;
 		const billAmountSen = priceSen + feeSen;

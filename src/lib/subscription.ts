@@ -9,18 +9,35 @@ export type PlanConfig = {
 
 export const PLANS: Record<PlanId, PlanConfig> = {
 	free: { id: "free", name: "Free", priceSen: 0, maxEmployees: 5 },
-	pro: { id: "pro", name: "Pro", priceSen: 2900, maxEmployees: 25 },
+	// internal ids are stable for existing DB rows — "pro" is shown as Starter,
+	// "business" as Pro
+	pro: { id: "pro", name: "Starter", priceSen: 2900, maxEmployees: 25 },
 	business: {
 		id: "business",
-		name: "Business",
-		priceSen: 5900,
+		name: "Pro",
+		priceSen: 7900,
 		maxEmployees: null,
 	},
 };
 
 export const PAID_PLANS: PlanId[] = ["pro", "business"];
 
-export const SUBSCRIPTION_MONTHS = [1, 3, 6, 12] as const;
+export const SUBSCRIPTION_MONTHS = [1, 3, 12] as const;
+
+/** Fraction off the monthly total when pre-paying a term. */
+export const TERM_DISCOUNTS: Record<number, number> = { 1: 0, 3: 0.1, 12: 0.2 };
+
+/** Total price in sen for pre-paying a plan for `months` months. */
+export function planTermPriceSen(planId: PlanId, months: number): number {
+	const base = PLANS[planId].priceSen * months;
+	const discount = TERM_DISCOUNTS[months] ?? 0;
+	return Math.round(base * (1 - discount));
+}
+
+export function termDiscountLabel(months: number): string | null {
+	const discount = TERM_DISCOUNTS[months] ?? 0;
+	return discount > 0 ? `save ${Math.round(discount * 100)}%` : null;
+}
 
 export const GRACE_DAYS = 7;
 export const WARN_DAYS = 7;

@@ -67,7 +67,9 @@ import {
 	PLANS,
 	type PlanId,
 	parseRmToSen,
+	planTermPriceSen,
 	SUBSCRIPTION_MONTHS,
+	termDiscountLabel,
 } from "#/lib/subscription";
 
 export const Route = createFileRoute("/_app/billing")({
@@ -412,12 +414,16 @@ function PlanCard({
 					</SelectTrigger>
 					<SelectContent>
 						<SelectGroup>
-							{SUBSCRIPTION_MONTHS.map((count) => (
-								<SelectItem key={count} value={String(count)}>
-									{count} month{count > 1 ? "s" : ""} —{" "}
-									{formatRm(plan.priceSen * count)}
-								</SelectItem>
-							))}
+							{SUBSCRIPTION_MONTHS.map((count) => {
+								const save = termDiscountLabel(count);
+								return (
+									<SelectItem key={count} value={String(count)}>
+										{count} month{count > 1 ? "s" : ""} —{" "}
+										{formatRm(planTermPriceSen(planId, count))}
+										{save ? ` (${save})` : ""}
+									</SelectItem>
+								);
+							})}
 						</SelectGroup>
 					</SelectContent>
 				</Select>
@@ -440,7 +446,7 @@ function PlanCard({
 					{renewalMutation.isPending
 						? "Opening Billplz…"
 						: (() => {
-								const total = plan.priceSen * months + billplzFeeSen;
+								const total = planTermPriceSen(planId, months) + billplzFeeSen;
 								return `Renew via Billplz — ${formatRm(total)}`;
 							})()}
 				</Button>
