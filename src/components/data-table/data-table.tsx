@@ -84,7 +84,7 @@ export function DataTablePagination<TData>({
 	const pageCount = table.getPageCount();
 	const rows = totalRows ?? table.getFilteredRowModel().rows.length;
 	return (
-		<div className="flex items-center justify-between">
+		<div className="flex flex-wrap items-center justify-between gap-2">
 			<p className="text-sm tabular-nums text-muted-foreground">
 				{rows} row{rows === 1 ? "" : "s"}
 			</p>
