@@ -1,0 +1,41 @@
+# Pings production every 15 minutes. A failed run emails the repository
+# owner (GitHub's default for failed scheduled workflows), so downtime is
+# noticed even when no one is using the app.
+#
+# Note: GitHub auto-disables scheduled workflows after 60 days without repo
+# activity — normal development activity keeps this alive.
+
+name: Uptime check
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch: {}
+
+permissions: {}
+
+concurrency:
+  group: uptime-check
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Landing page responds
+        run: |
+          code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 "https://tapme.nimfi.dev/?uptime=$(date +%s)")
+          echo "HTTP $code"
+          test "$code" = "200"
+
+      - name: Login page responds
+        run: |
+          code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 "https://tapme.nimfi.dev/login")
+          echo "HTTP $code"
+          test "$code" = "200"
+
+      - name: Signup page responds
+        run: |
+          code=$(curl -sS -o /dev/null -w "%{http_code}" --max-time 20 "https://tapme.nimfi.dev/signup")
+          echo "HTTP $code"
+          test "$code" = "200"

@@ -10,31 +10,25 @@ import { VenetianMask } from "lucide-react";
 import { PageShell } from "#/components/page-shell";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
-import { ensureActiveOrg, getSession } from "#/lib/auth.functions";
 import { authClient } from "#/lib/auth-client";
-import { ensureSubscription } from "#/lib/billing.functions";
+import { getAppBootstrap } from "#/lib/billing.functions";
 import { formatDate } from "#/lib/dates";
-import { getMyOrgRole } from "#/lib/org.functions";
 import { GRACE_MS, PLANS } from "#/lib/subscription";
 
 export const Route = createFileRoute("/_app")({
 	beforeLoad: async () => {
-		const session = await getSession();
-		if (!session) {
+		// single round trip for session + active org + role + subscription
+		const boot = await getAppBootstrap();
+		if (!boot.signedIn) {
 			throw redirect({ to: "/login" });
 		}
-		if (!session.session.activeOrganizationId) {
-			const { hasOrg } = await ensureActiveOrg();
-			if (!hasOrg) {
-				throw redirect({ to: "/onboarding" });
-			}
+		if (!boot.hasOrg) {
+			throw redirect({ to: "/onboarding" });
 		}
-		const orgRole = await getMyOrgRole();
-		const subscription = await ensureSubscription();
 		return {
-			orgRole,
-			isPlatformAdmin: session.user.role?.split(",").includes("admin") ?? false,
-			subscription,
+			orgRole: boot.orgRole,
+			isPlatformAdmin: boot.isPlatformAdmin,
+			subscription: boot.subscription,
 		};
 	},
 	component: AppLayout,

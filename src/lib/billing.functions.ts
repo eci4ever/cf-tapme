@@ -11,10 +11,12 @@ import {
 	user,
 } from "#/db/schema";
 import { logAudit } from "./audit.functions";
+import { ensureActiveOrg } from "./auth.functions";
 import type { CreatedBill } from "./billplz";
 import { billplzConfigured, billplzMode, createBill, getBill } from "./billplz";
 import { finalizePaidBill, getBillplzCollectionId } from "./billplz.webhook";
 import { notifyOrgAdmins, notifyPlatformAdmins } from "./notify";
+import { getMyOrgRole } from "./org.functions";
 import { getCurrentSession } from "./session";
 import {
 	addMonths,
@@ -208,6 +210,47 @@ async function settleSubscription(
 		);
 	}
 }
+
+/**
+ * One round trip for the app shell: session, active-org guarantee, org role,
+ * and subscription state. Replaces four sequential server-fn calls in the
+ * _app beforeLoad — each was a separate client→worker round trip on every
+ * in-app navigation.
+ */
+export const getAppBootstrap = createServerFn({ method: "GET" }).handler(
+	async () => {
+		const session = await getCurrentSession();
+		if (!session) {
+			return { signedIn: false as const };
+		}
+		const isPlatformAdmin =
+			session.user.role?.split(",").includes("admin") ?? false;
+		let hasOrg = Boolean(session.session.activeOrganizationId);
+		if (!hasOrg) {
+			hasOrg = (await ensureActiveOrg()).hasOrg;
+		}
+		if (!hasOrg) {
+			return {
+				signedIn: true as const,
+				hasOrg: false as const,
+				isPlatformAdmin,
+				orgRole: null,
+				subscription: null,
+			};
+		}
+		const [orgRole, subscription] = await Promise.all([
+			getMyOrgRole(),
+			ensureSubscription(),
+		]);
+		return {
+			signedIn: true as const,
+			hasOrg: true as const,
+			isPlatformAdmin,
+			orgRole,
+			subscription,
+		};
+	},
+);
 
 export const ensureSubscription = createServerFn({ method: "GET" }).handler(
 	async (): Promise<SubscriptionState | null> => {
