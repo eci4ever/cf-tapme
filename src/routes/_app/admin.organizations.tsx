@@ -252,7 +252,7 @@ function OrganizationsAdminPage() {
 						columnCount={columns.length}
 						stickyColumn
 						toolbar={
-							<div className="flex items-center gap-2">
+							<div className="flex flex-wrap items-center gap-2">
 								<Input
 									value={search}
 									onChange={(event) => setSearch(event.target.value)}

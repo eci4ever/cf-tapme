@@ -598,7 +598,7 @@ function ReportsPage() {
 					</Select>
 				) : null}
 				{data && data.scope !== "none" ? (
-					<div className="ml-auto flex gap-2">
+					<div className="ml-auto flex w-full flex-wrap justify-end gap-2 sm:w-auto">
 						<Button
 							variant="outline"
 							size="sm"

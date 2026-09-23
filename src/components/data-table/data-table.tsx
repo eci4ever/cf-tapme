@@ -43,7 +43,7 @@ export function DataTableSearchInput({
 			placeholder={`${placeholder}…`}
 			value={value}
 			onChange={(event) => onChange(event.target.value)}
-			className="h-8 w-48 lg:w-64"
+			className="h-8 w-full max-w-48 lg:w-64"
 		/>
 	);
 }
