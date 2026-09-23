@@ -1,6 +1,6 @@
 import { env } from "cloudflare:workers";
 import { createServerFn } from "@tanstack/react-start";
-import { and, desc, eq, like, lt, or, sql } from "drizzle-orm";
+import { and, desc, eq, lt, or, sql } from "drizzle-orm";
 import { getDb } from "#/db";
 import {
 	creditLedger,
@@ -14,8 +14,7 @@ import { logAudit } from "./audit.functions";
 import type { CreatedBill } from "./billplz";
 import { billplzConfigured, billplzMode, createBill, getBill } from "./billplz";
 import { finalizePaidBill, getBillplzCollectionId } from "./billplz.webhook";
-import { sendEmail } from "./email";
-import { notifyOrgAdmins } from "./notify";
+import { notifyOrgAdmins, notifyPlatformAdmins } from "./notify";
 import { getCurrentSession } from "./session";
 import {
 	addMonths,
@@ -174,6 +173,13 @@ async function settleSubscription(
 			`,
 			`/billing`,
 			`${org.name} was downgraded to the Free plan (max 5 active employees) — top up and subscribe to restore full access`,
+		);
+		await notifyPlatformAdmins(
+			`Subscription lost — ${org.name} downgraded to Free`,
+			`
+				<p style="color:#b91c1c;"><strong>${org.name}</strong>'s subscription expired after the grace period and was downgraded to the <strong>Free</strong> plan.</p>
+				<p>They can restore full access by topping up and subscribing again.</p>
+			`,
 		);
 	}
 
@@ -348,6 +354,12 @@ export const subscribePlan = createServerFn({ method: "POST" })
 				.update(organization)
 				.set({ pendingPlan: planId })
 				.where(eq(organization.id, orgId));
+			await notifyPlatformAdmins(
+				`Plan change scheduled — ${org.name}`,
+				`
+					<p><strong>${org.name}</strong> scheduled a plan change to <strong>${PLANS[planId].name}</strong>, effective at the next renewal (paid until ${org.paidUntil?.toLocaleDateString("en-MY") ?? "—"}).</p>
+				`,
+			);
 			return {
 				ok: true as const,
 				scheduled: true,
@@ -395,6 +407,13 @@ export const subscribePlan = createServerFn({ method: "POST" })
 			action: "billing.subscribed",
 			detail: `${PLANS[planId].name} plan for ${months} month${months > 1 ? "s" : ""} — ${formatRm(priceSen)}`,
 		});
+		await notifyPlatformAdmins(
+			`New subscription — ${org.name}`,
+			`
+				<p><strong>${org.name}</strong> subscribed to the <strong>${PLANS[planId].name}</strong> plan.</p>
+				<p style="margin:8px 0;">Term: <strong>${months} month${months > 1 ? "s" : ""}</strong> · Charged: <strong>${formatRm(priceSen)}</strong> (from credit balance) · Paid until: <strong>${org.paidUntil.toLocaleDateString("en-MY")}</strong></p>
+			`,
+		);
 		return {
 			ok: true as const,
 			scheduled: false,
@@ -485,23 +504,6 @@ export const adminAdjustCredit = createServerFn({ method: "POST" })
 		});
 		return { ok: true as const, balanceSen: org.balanceSen };
 	});
-
-async function notifyPlatformAdmins(
-	subject: string,
-	bodyHtml: string,
-): Promise<void> {
-	const admins = await getDb()
-		.select({ email: user.email })
-		.from(user)
-		.where(like(user.role, "%admin%"));
-	for (const admin of admins) {
-		await sendEmail({
-			to: admin.email,
-			subject,
-			html: `<div style="font-family:Arial,sans-serif;">${bodyHtml}</div>`,
-		});
-	}
-}
 
 export const requestTopup = createServerFn({ method: "POST" })
 	.validator((input: { amountSen: number; paymentRef: string }) => input)

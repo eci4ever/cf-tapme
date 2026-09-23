@@ -1,5 +1,5 @@
 import { env } from "cloudflare:workers";
-import { and, eq, inArray } from "drizzle-orm";
+import { and, eq, inArray, like } from "drizzle-orm";
 import { getDb } from "#/db";
 import {
 	employee,
@@ -184,5 +184,24 @@ export async function notifySupervisors(
 		);
 	for (const admin of admins) {
 		await notifyUser(orgId, admin.userId, subject, bodyHtml, linkPath, summary);
+	}
+}
+
+/** Email every platform admin (user.role containing "admin") — always sends,
+ * regardless of any organization's email toggle. Best-effort per recipient. */
+export async function notifyPlatformAdmins(
+	subject: string,
+	bodyHtml: string,
+): Promise<void> {
+	const admins = await getDb()
+		.select({ email: user.email })
+		.from(user)
+		.where(like(user.role, "%admin%"));
+	for (const admin of admins) {
+		await sendEmail({
+			to: admin.email,
+			subject,
+			html: `<div style="font-family:Arial,sans-serif;">${bodyHtml}</div>`,
+		});
 	}
 }

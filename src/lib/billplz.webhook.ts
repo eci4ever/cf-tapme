@@ -8,7 +8,7 @@ import {
 } from "#/db/schema";
 import { logAudit } from "./audit.functions";
 import { verifyXSignature } from "./billplz";
-import { notifyOrgAdmins } from "./notify";
+import { notifyOrgAdmins, notifyPlatformAdmins } from "./notify";
 import { addMonths, formatRm } from "./subscription";
 
 /**
@@ -166,11 +166,15 @@ async function finalizeCredit(
 			balanceSen: sql`${organization.balanceSen} + ${topup.amountSen}`,
 		})
 		.where(eq(organization.id, topup.organizationId))
-		.returning({ balanceSen: organization.balanceSen });
+		.returning({
+			balanceSen: organization.balanceSen,
+			orgName: organization.name,
+		});
 	if (!updated) {
 		throw new Error(`Organization ${topup.organizationId} missing`);
 	}
 	const balanceSen = updated.balanceSen;
+	const orgName = updated.orgName;
 	await db.insert(creditLedger).values({
 		id: crypto.randomUUID(),
 		organizationId: topup.organizationId,
@@ -218,6 +222,14 @@ async function finalizeCredit(
 	} catch (error) {
 		console.error("[billplz] receipt notification failed:", error);
 	}
+	await notifyPlatformAdmins(
+		`Billplz payment received — ${orgName} top-up ${formatRm(topup.amountSen)}`,
+		`
+			<p><strong>${orgName}</strong> paid a credit top-up via Billplz.</p>
+			<p style="margin:8px 0;">Credit: <strong>${formatRm(topup.amountSen)}</strong> · Total charged: <strong>${formatRm(topup.billAmountSen ?? topup.amountSen)}</strong> · Bill: <strong>${billId}</strong></p>
+			<p>New balance: <strong>${formatRm(balanceSen)}</strong></p>
+		`,
+	);
 }
 
 async function finalizeRenewal(
@@ -228,7 +240,10 @@ async function finalizeRenewal(
 	const now = new Date();
 	const months = topup.months ?? 1;
 	const [org] = await db
-		.select({ paidUntil: organization.paidUntil })
+		.select({
+			paidUntil: organization.paidUntil,
+			orgName: organization.name,
+		})
 		.from(organization)
 		.where(eq(organization.id, topup.organizationId))
 		.limit(1);
@@ -275,6 +290,14 @@ async function finalizeRenewal(
 	} catch (error) {
 		console.error("[billplz] receipt notification failed:", error);
 	}
+	await notifyPlatformAdmins(
+		`Billplz renewal received — ${org.orgName} ${topup.planId ?? "plan"} × ${months} month${months > 1 ? "s" : ""}`,
+		`
+			<p><strong>${org.orgName}</strong> renewed the <strong>${topup.planId ?? "plan"}</strong> plan via Billplz.</p>
+			<p style="margin:8px 0;">Term: <strong>${months} month${months > 1 ? "s" : ""}</strong> · Total charged: <strong>${formatRm(topup.billAmountSen ?? topup.amountSen)}</strong> · Bill: <strong>${billId}</strong></p>
+			<p>Paid until: <strong>${paidUntil.toLocaleDateString("en-MY")}</strong></p>
+		`,
+	);
 }
 
 /** Collection ID for bill creation from platform settings (null = unset). */

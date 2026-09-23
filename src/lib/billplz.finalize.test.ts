@@ -17,7 +17,10 @@ import {
 // through drizzle's sqlite-proxy, and no-op the side-effect modules.
 const hoisted = vi.hoisted(() => ({ db: undefined as unknown }));
 vi.mock("#/db", () => ({ getDb: () => hoisted.db }));
-vi.mock("./notify", () => ({ notifyOrgAdmins: async () => {} }));
+vi.mock("./notify", () => ({
+	notifyOrgAdmins: async () => {},
+	notifyPlatformAdmins: async () => {},
+}));
 vi.mock("./audit.functions", () => ({ logAudit: async () => {} }));
 vi.mock("./billplz", () => ({ verifyXSignature: async () => true }));
 
