@@ -33,7 +33,7 @@ export function PageShell({
 			<SidebarInset className="max-md:pl-12 min-w-0">
 				<div className="mx-auto w-full max-w-6xl min-w-0">
 					<header className="flex h-16 shrink-0 items-center gap-2 max-md:mt-[env(safe-area-inset-top)]">
-						<div className="flex items-center gap-2 px-4">
+						<div className="flex min-w-0 items-center gap-1.5 px-2 sm:gap-2 sm:px-4">
 							<SidebarTrigger className="-ml-1 size-11" />
 							<Separator
 								orientation="vertical"
@@ -47,7 +47,7 @@ export function PageShell({
 								</BreadcrumbList>
 							</Breadcrumb>
 						</div>
-						<div className="ml-auto flex items-center gap-1 px-4">
+						<div className="ml-auto flex items-center gap-0.5 px-2 sm:gap-1 sm:px-4">
 							<NotificationBell />
 							<ThemeToggle />
 						</div>
