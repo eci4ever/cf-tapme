@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { LoadError } from "#/components/load-error";
 import { LinesSkeleton } from "#/components/loading-skeletons";
 import {
 	Card,
@@ -37,7 +38,10 @@ function ActivityPage() {
 					{activityQuery.isPending ? (
 						<LinesSkeleton rows={4} />
 					) : activityQuery.isError ? (
-						<p className="text-sm text-destructive">Failed to load activity.</p>
+						<LoadError
+							message="Could not load your activity."
+							onRetry={() => activityQuery.refetch()}
+						/>
 					) : logs.length === 0 ? (
 						<p className="text-sm text-muted-foreground">
 							No activity recorded yet.

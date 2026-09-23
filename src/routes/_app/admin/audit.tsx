@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
+import { LoadError } from "#/components/load-error";
 import { LinesSkeleton } from "#/components/loading-skeletons";
 import {
 	Card,
@@ -141,7 +142,10 @@ function AdminAuditPage() {
 				{logsQuery.isPending ? (
 					<LinesSkeleton rows={4} />
 				) : logsQuery.isError ? (
-					<p className="text-sm text-destructive">Failed to load audit log.</p>
+					<LoadError
+						message="Could not load the audit log."
+						onRetry={() => logsQuery.refetch()}
+					/>
 				) : logs.length === 0 ? (
 					<p className="text-sm text-muted-foreground">
 						No audit entries match the filters.

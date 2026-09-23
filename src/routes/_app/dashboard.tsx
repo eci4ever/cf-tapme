@@ -773,7 +773,7 @@ function SummaryCard({
 			<CardContent className="flex h-full flex-col gap-1.5 px-4 pt-4 sm:gap-2">
 				<div className="flex items-center justify-between gap-2">
 					<CardDescription className="text-xs">{label}</CardDescription>
-					<span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/15 to-primary/5 text-primary">
+					<span className="flex size-7 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary/30 to-primary/10 text-primary">
 						<Icon className="size-3.5" />
 					</span>
 				</div>

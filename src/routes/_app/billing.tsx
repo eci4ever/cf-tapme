@@ -8,6 +8,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ArrowDownRight, ArrowUpRight, CreditCard, Wallet } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { LoadError } from "#/components/load-error";
 import { PageSkeleton } from "#/components/loading-skeletons";
 import { StatusBadge } from "#/components/status-badge";
 import { Badge } from "#/components/ui/badge";
@@ -106,7 +107,12 @@ function BillingPage() {
 	});
 
 	if (overviewQuery.isError) {
-		return <p className="text-sm text-destructive">Failed to load billing.</p>;
+		return (
+			<LoadError
+				message="Could not load your billing data."
+				onRetry={() => overviewQuery.refetch()}
+			/>
+		);
 	}
 	if (overviewQuery.isPending || !overviewQuery.data) {
 		return <PageSkeleton />;
