@@ -534,7 +534,7 @@ function ClockWidget({
 							You have not clocked in today.
 						</p>
 					)}
-					<div className="ml-auto flex w-full flex-wrap items-center gap-2 [&>*>*>button]:h-11 sm:[&>*>*>button]:h-9">
+					<div className="ml-auto flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center">
 						{!record && configuredSites.length > 1 ? (
 							<select
 								aria-label="Work site"
@@ -551,7 +551,7 @@ function ClockWidget({
 							</select>
 						) : null}
 						<Button
-							className="h-11 flex-1 text-base sm:h-9 sm:flex-none sm:text-sm"
+							className="h-11 w-full text-base sm:h-9 sm:w-auto sm:text-sm"
 							onClick={() => handleClock("in")}
 							disabled={clockMutation.isPending || record !== null}
 						>
@@ -560,7 +560,7 @@ function ClockWidget({
 						</Button>
 						<Button
 							variant="outline"
-							className="h-11 flex-1 text-base sm:h-9 sm:flex-none sm:text-sm"
+							className="h-11 w-full text-base sm:h-9 sm:w-auto sm:text-sm"
 							onClick={() => handleClock("out")}
 							disabled={clockMutation.isPending || !isClockedIn}
 						>
