@@ -808,7 +808,7 @@ function SecurityRow({
 	reviewLabel: string;
 }) {
 	return (
-		<div className="flex items-center gap-3 rounded-lg border p-3">
+		<div className="flex min-w-0 items-center gap-3 rounded-lg border p-3">
 			<Icon className="size-5 text-muted-foreground" />
 			<div className="min-w-0 flex-1">
 				<p className="text-sm font-medium">{label}</p>
