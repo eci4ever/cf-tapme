@@ -126,6 +126,12 @@
     -webkit-tap-highlight-color: transparent;
     touch-action: manipulation;
   }
+  /* loading skeletons and the pending bar keep their shape, minus motion */
+  @media (prefers-reduced-motion: reduce) {
+    .animate-pulse {
+      animation: none;
+    }
+  }
   @media (prefers-reduced-motion: no-preference) {
     html {
       scroll-behavior: smooth;

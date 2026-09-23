@@ -146,19 +146,21 @@ function AttendancePage() {
 
 	return (
 		<Tabs value={activeTab} onValueChange={setTab} className="gap-4">
-			<TabsList className="h-[38px]">
-				<TabsTrigger value="me" className="h-[38px] px-3 sm:px-4">
-					My attendance
-				</TabsTrigger>
-				{canViewAll ? (
-					<TabsTrigger value="all" className="h-[38px] px-3 sm:px-4">
-						All attendance
+			<div className="-mx-1 overflow-x-auto px-1 pb-1">
+				<TabsList className="h-[38px] w-fit">
+					<TabsTrigger value="me" className="h-[38px] px-3 sm:px-4">
+						My attendance
 					</TabsTrigger>
-				) : null}
-				<TabsTrigger value="issues" className="h-[38px] px-3 sm:px-4">
-					Issues
-				</TabsTrigger>
-			</TabsList>
+					{canViewAll ? (
+						<TabsTrigger value="all" className="h-[38px] px-3 sm:px-4">
+							All attendance
+						</TabsTrigger>
+					) : null}
+					<TabsTrigger value="issues" className="h-[38px] px-3 sm:px-4">
+						Issues
+					</TabsTrigger>
+				</TabsList>
+			</div>
 			<TabsContent value="me">
 				<MyAttendanceTab />
 			</TabsContent>
