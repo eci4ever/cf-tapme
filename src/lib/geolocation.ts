@@ -18,8 +18,15 @@ export function getPosition(): Promise<{
 							? position.coords.accuracy
 							: null,
 				}),
-			(error) => reject(new Error(error.message || "Failed to get location")),
-			{ enableHighAccuracy: true, timeout: 15_000, maximumAge: 0 },
+			(error) => {
+				// code 1 = permission denied, 2 = position unavailable, 3 = timeout
+				const message =
+					error.code === 1
+						? "Location permission was denied — enable it for this site to clock in"
+						: "Could not get your location — make sure location services are on and try again";
+				reject(new Error(message));
+			},
+			{ enableHighAccuracy: true, timeout: 10_000, maximumAge: 0 },
 		);
 	});
 }

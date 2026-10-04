@@ -432,7 +432,8 @@ function Pricing() {
 				</h2>
 				<p className="max-w-xl text-muted-foreground">
 					Every plan includes all features — the only difference is team size.
-					Pay monthly via credit top-up, with 1, 3, 6, or 12 month terms.
+					Pay monthly via credit top-up, or save 10% on a quarterly and 20% on a
+					yearly term.
 				</p>
 			</div>
 			<div className="grid gap-6 md:grid-cols-3">

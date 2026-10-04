@@ -327,6 +327,7 @@ function ClockWidget({
 }) {
 	const queryClient = useQueryClient();
 	const [selectedSiteId, setSelectedSiteId] = useState<string>("");
+	const [locating, setLocating] = useState(false);
 	const [notePrompt, setNotePrompt] = useState<NotePrompt | null>(null);
 	const [noteText, setNoteText] = useState("");
 
@@ -444,6 +445,9 @@ function ClockWidget({
 				toast.error(geofence.blockedReason);
 				return;
 			}
+			// show progress while the GPS fix is being obtained — without this
+			// the button sits idle for up to the geolocation timeout
+			setLocating(true);
 			try {
 				coords = await getPosition();
 			} catch (error) {
@@ -451,6 +455,8 @@ function ClockWidget({
 					error instanceof Error ? error.message : "Failed to get location",
 				);
 				return;
+			} finally {
+				setLocating(false);
 			}
 		}
 		const siteId =
@@ -553,19 +559,23 @@ function ClockWidget({
 						<Button
 							className="h-11 w-full text-base sm:h-9 sm:w-auto sm:text-sm"
 							onClick={() => handleClock("in")}
-							disabled={clockMutation.isPending || record !== null}
+							disabled={locating || clockMutation.isPending || record !== null}
 						>
 							<LogIn />
-							{clockMutation.isPending ? "Clocking in…" : "Clock in"}
+							{locating
+								? "Getting location…"
+								: clockMutation.isPending
+									? "Clocking in…"
+									: "Clock in"}
 						</Button>
 						<Button
 							variant="outline"
 							className="h-11 w-full text-base sm:h-9 sm:w-auto sm:text-sm"
 							onClick={() => handleClock("out")}
-							disabled={clockMutation.isPending || !isClockedIn}
+							disabled={locating || clockMutation.isPending || !isClockedIn}
 						>
 							<LogOut />
-							Clock out
+							{locating ? "Getting location…" : "Clock out"}
 						</Button>
 					</div>
 				</div>
