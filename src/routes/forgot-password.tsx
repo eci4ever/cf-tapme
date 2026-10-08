@@ -1,7 +1,7 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { CalendarCheck, MailCheck } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "#/lib/toast";
 import { Turnstile } from "#/components/turnstile";
 import { Button } from "#/components/ui/button";
 import {

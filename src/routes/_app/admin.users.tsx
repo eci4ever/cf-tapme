@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-table";
 import { MoreHorizontal, ShieldOff, UserCog, VenetianMask } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "#/lib/toast";
 import {
 	DataTable,
 	DataTableSearchInput,

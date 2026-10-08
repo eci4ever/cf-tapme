@@ -5,7 +5,7 @@ import {
 	useRouter,
 } from "@tanstack/react-router";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "#/lib/toast";
 import { AuthShell } from "#/components/auth-layout";
 import { GoogleButton } from "#/components/google-sign-in-button";
 import { Turnstile } from "#/components/turnstile";

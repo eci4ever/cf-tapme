@@ -153,7 +153,12 @@ export function AppSidebar() {
 												isActive={isItemActive(item, pathname)}
 												tooltip={item.title}
 											>
-												<Link to={item.to}>
+												<Link
+													to={item.to}
+													aria-current={
+														isItemActive(item, pathname) ? "page" : undefined
+													}
+												>
 													<item.icon />
 													<span>{item.title}</span>
 												</Link>

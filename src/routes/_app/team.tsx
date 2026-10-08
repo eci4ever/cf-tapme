@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { Send, UserCog, UserMinus, UserPlus, X } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "#/lib/toast";
 import { TableRowsSkeleton } from "#/components/loading-skeletons";
 import { RoleBadge } from "#/components/role-badge";
 import {

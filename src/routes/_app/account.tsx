@@ -3,7 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { CheckCircle2, KeyRound, ShieldCheck, X, XCircle } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "#/lib/toast";
 import { TableRowsSkeleton } from "#/components/loading-skeletons";
 import {
 	AlertDialog,

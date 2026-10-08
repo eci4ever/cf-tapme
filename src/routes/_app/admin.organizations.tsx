@@ -8,7 +8,7 @@ import {
 } from "@tanstack/react-table";
 import { Eye } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "#/lib/toast";
 import { DataTable, SortableHeader } from "#/components/data-table/data-table";
 import { LinesSkeleton } from "#/components/loading-skeletons";
 import { StatusBadge } from "#/components/status-badge";

@@ -10,7 +10,7 @@ import {
 	X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { toast } from "sonner";
+import { toast } from "#/lib/toast";
 import { AttendanceHeatmap } from "#/components/attendance-heatmap";
 import {
 	PageSkeleton,

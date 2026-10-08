@@ -7,7 +7,7 @@ import {
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { ArrowDownRight, ArrowUpRight, CreditCard, Wallet } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "#/lib/toast";
 import { LoadError } from "#/components/load-error";
 import { PageSkeleton } from "#/components/loading-skeletons";
 import { StatusBadge } from "#/components/status-badge";

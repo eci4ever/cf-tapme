@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { toast } from "sonner";
+import { toast } from "#/lib/toast";
 import { LinesSkeleton } from "#/components/loading-skeletons";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
