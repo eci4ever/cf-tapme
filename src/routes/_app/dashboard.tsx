@@ -4,15 +4,27 @@ import {
 	AlarmClock,
 	CalendarOff,
 	CalendarPlus,
+	CheckCircle2,
 	FileText,
 	LogIn,
 	LogOut,
 	MailCheck,
+	MapPin,
 	UserCheck,
 	Users,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "#/components/ui/alert-dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "#/components/ui/avatar";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
@@ -329,6 +341,14 @@ function ClockWidget({
 	const [selectedSiteId, setSelectedSiteId] = useState<string>("");
 	const [locating, setLocating] = useState(false);
 	const [notePrompt, setNotePrompt] = useState<NotePrompt | null>(null);
+	const [locationConfirm, setLocationConfirm] = useState<{
+		action: "in" | "out";
+		coords: ClockCoords;
+		siteId?: string;
+		siteName: string;
+		distanceM: number;
+		inside: boolean;
+	} | null>(null);
 	const [noteText, setNoteText] = useState("");
 
 	const today = todayQuery.data;
@@ -458,11 +478,36 @@ function ClockWidget({
 			} finally {
 				setLocating(false);
 			}
+			const site = geofence.site;
+			if (site.id && site.lat !== 0) {
+				const distanceM = haversineMeters(
+					coords.latitude,
+					coords.longitude,
+					site.lat,
+					site.lng,
+				);
+				setLocationConfirm({
+					action,
+					coords,
+					siteId: selectedSiteId || undefined,
+					siteName: site.name,
+					distanceM,
+					inside: distanceM <= site.radiusM,
+				});
+				return;
+			}
 		}
-		const siteId =
-			action === "in" && configuredSites.length > 1 && selectedSiteId
-				? selectedSiteId
-				: undefined;
+		continueClock(action, coords);
+	}
+
+	function continueClock(
+		action: "in" | "out",
+		coords: ClockCoords | undefined,
+		siteId?: string,
+	) {
+		if (!today) {
+			return;
+		}
 		const reasons = predictIssues(action, today, coords);
 		if (reasons.length > 0) {
 			setNotePrompt({ action, reasons, coords, siteId });
@@ -470,6 +515,18 @@ function ClockWidget({
 			return;
 		}
 		clockMutation.mutate({ action, coords, siteId });
+	}
+
+	function confirmLocation() {
+		if (!locationConfirm) {
+			return;
+		}
+		setLocationConfirm(null);
+		continueClock(
+			locationConfirm.action,
+			locationConfirm.coords,
+			locationConfirm.siteId,
+		);
 	}
 
 	function submitWithNote() {
@@ -640,6 +697,40 @@ function ClockWidget({
 					</DialogFooter>
 				</DialogContent>
 			</Dialog>
+			<AlertDialog
+				open={locationConfirm !== null}
+				onOpenChange={(open) => {
+					if (!open) {
+						setLocationConfirm(null);
+					}
+				}}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle className="flex items-center gap-2">
+							{locationConfirm?.inside ? (
+								<CheckCircle2 className="size-5 text-emerald-600" />
+							) : (
+								<MapPin className="size-5 text-amber-600" />
+							)}
+							{locationConfirm?.inside
+								? `You're inside ${locationConfirm.siteName}`
+								: `You're outside ${locationConfirm?.siteName ?? "your work site"}`}
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							{locationConfirm?.inside
+								? `Your location is within the work site boundary (${locationConfirm.distanceM}m from ${locationConfirm.siteName}).`
+								: `You are ${locationConfirm?.distanceM ?? "?"}m from the work site — this clock ${locationConfirm?.action} will be recorded as outside the geofence.`}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction onClick={confirmLocation}>
+							Confirm clock {locationConfirm?.action}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
 		</Card>
 	);
 }

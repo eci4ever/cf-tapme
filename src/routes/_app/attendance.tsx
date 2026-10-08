@@ -1,6 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, useRouteContext } from "@tanstack/react-router";
-import { Check, LogIn, LogOut, PlusSquare, X } from "lucide-react";
+import {
+	Check,
+	CheckCircle2,
+	LogIn,
+	LogOut,
+	MapPin,
+	PlusSquare,
+	X,
+} from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AttendanceHeatmap } from "#/components/attendance-heatmap";
@@ -8,6 +16,16 @@ import {
 	PageSkeleton,
 	TableRowsSkeleton,
 } from "#/components/loading-skeletons";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+} from "#/components/ui/alert-dialog";
 import { Badge } from "#/components/ui/badge";
 import { Button } from "#/components/ui/button";
 import {
@@ -51,7 +69,7 @@ import {
 	verifyIssue,
 } from "#/lib/attendance.functions";
 import { formatDate, formatTime } from "#/lib/dates";
-import { getPosition } from "#/lib/geolocation";
+import { getPosition, haversineMeters } from "#/lib/geolocation";
 import {
 	type ClockInStatus,
 	type ClockOutStatus,
@@ -179,6 +197,13 @@ function AttendancePage() {
 function MyAttendanceTab() {
 	const queryClient = useQueryClient();
 	const [pending, setPending] = useState(false);
+	const [locationConfirm, setLocationConfirm] = useState<{
+		action: "in" | "out";
+		coords: { latitude: number; longitude: number };
+		siteName: string;
+		distanceM: number;
+		inside: boolean;
+	} | null>(null);
 	const todayQuery = useQuery({
 		queryKey: ["attendance", "today"],
 		queryFn: getTodayAttendance,
@@ -192,18 +217,9 @@ function MyAttendanceTab() {
 		queryFn: getMyAttendanceHeatmap,
 	});
 
-	async function handleClockIn() {
+	async function runClockIn(coords?: { latitude: number; longitude: number }) {
 		setPending(true);
 		try {
-			let coords: { latitude: number; longitude: number } | undefined;
-			const geofence = todayQuery.data?.geofence;
-			if (geofence?.geofenceEnabled) {
-				if (geofence.blockedReason) {
-					toast.error(geofence.blockedReason);
-					return;
-				}
-				coords = await getPosition();
-			}
 			const result = await clockIn({ data: coords });
 			if (!result.ok) {
 				toast.error(result.reason);
@@ -217,6 +233,63 @@ function MyAttendanceTab() {
 			queryClient.invalidateQueries({ queryKey: ["attendance"] });
 			queryClient.invalidateQueries({ queryKey: ["issues"] });
 			queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+		} finally {
+			setPending(false);
+		}
+	}
+
+	async function runClockOut(coords?: { latitude: number; longitude: number }) {
+		setPending(true);
+		try {
+			const result = await clockOut({ data: coords });
+			if (!result.ok) {
+				toast.error(result.reason);
+				return;
+			}
+			toast.success(
+				result.status === "short"
+					? "Clocked out — note: under target hours"
+					: "Clocked out",
+			);
+			queryClient.invalidateQueries({ queryKey: ["attendance"] });
+			queryClient.invalidateQueries({ queryKey: ["issues"] });
+			queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+		} finally {
+			setPending(false);
+		}
+	}
+
+	async function handleClockIn() {
+		setPending(true);
+		try {
+			let coords: { latitude: number; longitude: number } | undefined;
+			const geofence = todayQuery.data?.geofence;
+			if (geofence?.geofenceEnabled) {
+				if (geofence.blockedReason) {
+					toast.error(geofence.blockedReason);
+					return;
+				}
+				coords = await getPosition();
+				const site = geofence.site;
+				if (site.id && site.lat !== 0) {
+					const distanceM = haversineMeters(
+						coords.latitude,
+						coords.longitude,
+						site.lat,
+						site.lng,
+					);
+					setPending(false);
+					setLocationConfirm({
+						action: "in",
+						coords,
+						siteName: site.name,
+						distanceM,
+						inside: distanceM <= site.radiusM,
+					});
+					return;
+				}
+			}
+			await runClockIn(coords);
 		} catch (error) {
 			toast.error(
 				error instanceof Error
@@ -239,20 +312,26 @@ function MyAttendanceTab() {
 					return;
 				}
 				coords = await getPosition();
+				const site = geofence.site;
+				if (site.id && site.lat !== 0) {
+					const distanceM = haversineMeters(
+						coords.latitude,
+						coords.longitude,
+						site.lat,
+						site.lng,
+					);
+					setPending(false);
+					setLocationConfirm({
+						action: "out",
+						coords,
+						siteName: site.name,
+						distanceM,
+						inside: distanceM <= site.radiusM,
+					});
+					return;
+				}
 			}
-			const result = await clockOut({ data: coords });
-			if (!result.ok) {
-				toast.error(result.reason);
-				return;
-			}
-			toast.success(
-				result.status === "short"
-					? "Clocked out — note: under target hours"
-					: "Clocked out",
-			);
-			queryClient.invalidateQueries({ queryKey: ["attendance"] });
-			queryClient.invalidateQueries({ queryKey: ["issues"] });
-			queryClient.invalidateQueries({ queryKey: ["dashboard"] });
+			await runClockOut(coords);
 		} catch (error) {
 			toast.error(
 				error instanceof Error
@@ -288,147 +367,195 @@ function MyAttendanceTab() {
 	const isClockedIn = record !== null && record.clockOut === null;
 
 	return (
-		<div className="flex flex-col gap-4">
-			<Card>
-				<CardHeader>
-					<CardTitle>
-						Today — {formatDate(new Date(`${today.today}T00:00:00`))}
-					</CardTitle>
-					<CardDescription>
-						{today.employee ? (
+		<>
+			<div className="flex flex-col gap-4">
+				<Card>
+					<CardHeader>
+						<CardTitle>
+							Today — {formatDate(new Date(`${today.today}T00:00:00`))}
+						</CardTitle>
+						<CardDescription>
+							{today.employee ? (
+								<>
+									{today.employee.name} · {today.employee.shift} shift · work
+									hours {formatMinutes(today.schedule.workStartMinutes)}–
+									{formatMinutes(today.schedule.workEndMinutes)}
+								</>
+							) : (
+								"Your account is not linked to an employee record — ask an admin to link you, or they can key in your attendance manually."
+							)}
+						</CardDescription>
+					</CardHeader>
+					<CardContent className="flex flex-wrap items-center gap-4">
+						{record ? (
 							<>
-								{today.employee.name} · {today.employee.shift} shift · work
-								hours {formatMinutes(today.schedule.workStartMinutes)}–
-								{formatMinutes(today.schedule.workEndMinutes)}
+								<div>
+									<p className="text-xs text-muted-foreground">Clock in</p>
+									<p className="flex items-center gap-2 text-lg font-semibold tabular-nums">
+										{formatTime(new Date(record.clockIn))}
+										<ClockInBadge status={record.clockInStatus} />
+									</p>
+								</div>
+								<div>
+									<p className="text-xs text-muted-foreground">Clock out</p>
+									<p className="flex items-center gap-2 text-lg font-semibold tabular-nums">
+										{record.clockOut
+											? formatTime(new Date(record.clockOut))
+											: "—"}
+										{record.clockOutStatus ? (
+											<ClockOutBadge status={record.clockOutStatus} />
+										) : null}
+									</p>
+								</div>
+								{isClockedIn && today.targetClockOut ? (
+									<p className="text-sm text-muted-foreground tabular-nums">
+										Target clock out: {formatTime(today.targetClockOut)}
+									</p>
+								) : null}
 							</>
 						) : (
-							"Your account is not linked to an employee record — ask an admin to link you, or they can key in your attendance manually."
+							<p className="text-sm text-muted-foreground">
+								{today.employee
+									? "You have not clocked in today."
+									: "No record for today."}
+							</p>
 						)}
-					</CardDescription>
-				</CardHeader>
-				<CardContent className="flex flex-wrap items-center gap-4">
-					{record ? (
-						<>
-							<div>
-								<p className="text-xs text-muted-foreground">Clock in</p>
-								<p className="flex items-center gap-2 text-lg font-semibold tabular-nums">
-									{formatTime(new Date(record.clockIn))}
-									<ClockInBadge status={record.clockInStatus} />
-								</p>
-							</div>
-							<div>
-								<p className="text-xs text-muted-foreground">Clock out</p>
-								<p className="flex items-center gap-2 text-lg font-semibold tabular-nums">
-									{record.clockOut
-										? formatTime(new Date(record.clockOut))
-										: "—"}
-									{record.clockOutStatus ? (
-										<ClockOutBadge status={record.clockOutStatus} />
-									) : null}
-								</p>
-							</div>
-							{isClockedIn && today.targetClockOut ? (
-								<p className="text-sm text-muted-foreground tabular-nums">
-									Target clock out: {formatTime(today.targetClockOut)}
-								</p>
-							) : null}
-						</>
-					) : (
-						<p className="text-sm text-muted-foreground">
-							{today.employee
-								? "You have not clocked in today."
-								: "No record for today."}
-						</p>
-					)}
-					<div className="ml-auto flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
-						<Button
-							className="h-[42px] w-full text-base sm:h-9 sm:w-auto sm:text-sm"
-							onClick={handleClockIn}
-							disabled={pending || !today.employee || record !== null}
-						>
-							<LogIn />
-							{pending ? "Clocking in…" : "Clock in"}
-						</Button>
-						<Button
-							variant="outline"
-							className="h-[42px] w-full text-base sm:h-9 sm:w-auto sm:text-sm"
-							onClick={handleClockOut}
-							disabled={pending || !today.employee || !isClockedIn}
-						>
-							<LogOut />
-							{pending ? "Clocking out…" : "Clock out"}
-						</Button>
-					</div>
-				</CardContent>
-			</Card>
+						<div className="ml-auto flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+							<Button
+								className="h-[42px] w-full text-base sm:h-9 sm:w-auto sm:text-sm"
+								onClick={handleClockIn}
+								disabled={pending || !today.employee || record !== null}
+							>
+								<LogIn />
+								{pending ? "Clocking in…" : "Clock in"}
+							</Button>
+							<Button
+								variant="outline"
+								className="h-[42px] w-full text-base sm:h-9 sm:w-auto sm:text-sm"
+								onClick={handleClockOut}
+								disabled={pending || !today.employee || !isClockedIn}
+							>
+								<LogOut />
+								{pending ? "Clocking out…" : "Clock out"}
+							</Button>
+						</div>
+					</CardContent>
+				</Card>
 
-			<Card>
-				<CardHeader>
-					<CardTitle>Attendance heatmap</CardTitle>
-					<CardDescription>Your last 12 weeks at a glance</CardDescription>
-				</CardHeader>
-				<CardContent>
-					{heatmapQuery.isPending ? (
-						<PageSkeleton />
-					) : (
-						<AttendanceHeatmap days={heatmapQuery.data?.days ?? []} />
-					)}
-				</CardContent>
-			</Card>
+				<Card>
+					<CardHeader>
+						<CardTitle>Attendance heatmap</CardTitle>
+						<CardDescription>Your last 12 weeks at a glance</CardDescription>
+					</CardHeader>
+					<CardContent>
+						{heatmapQuery.isPending ? (
+							<PageSkeleton />
+						) : (
+							<AttendanceHeatmap days={heatmapQuery.data?.days ?? []} />
+						)}
+					</CardContent>
+				</Card>
 
-			<Card>
-				<CardHeader>
-					<CardTitle>History</CardTitle>
-					<CardDescription>Your last 30 attendance records</CardDescription>
-				</CardHeader>
-				<CardContent>
-					{history.length === 0 ? (
-						<p className="text-sm text-muted-foreground">No records yet.</p>
-					) : (
-						<Table>
-							<TableHeader>
-								<TableRow>
-									<TableHead>Date</TableHead>
-									<TableHead>Clock in</TableHead>
-									<TableHead>Clock out</TableHead>
-									<TableHead>Location</TableHead>
-									<TableHead>Note</TableHead>
-								</TableRow>
-							</TableHeader>
-							<TableBody>
-								{history.map((entry) => (
-									<TableRow key={entry.id}>
-										<TableCell>{entry.date}</TableCell>
-										<TableCell>
-											<span className="flex items-center gap-2 tabular-nums">
-												{formatTime(new Date(entry.clockIn))}
-												<ClockInBadge status={entry.clockInStatus} />
-											</span>
-										</TableCell>
-										<TableCell>
-											<span className="flex items-center gap-2 tabular-nums">
-												{entry.clockOut
-													? formatTime(new Date(entry.clockOut))
-													: "—"}
-												{entry.clockOutStatus ? (
-													<ClockOutBadge status={entry.clockOutStatus} />
-												) : null}
-											</span>
-										</TableCell>
-										<TableCell>
-											<LocationCell record={entry} />
-										</TableCell>
-										<TableCell className="max-w-40 truncate text-muted-foreground">
-											{entry.note ?? "—"}
-										</TableCell>
+				<Card>
+					<CardHeader>
+						<CardTitle>History</CardTitle>
+						<CardDescription>Your last 30 attendance records</CardDescription>
+					</CardHeader>
+					<CardContent>
+						{history.length === 0 ? (
+							<p className="text-sm text-muted-foreground">No records yet.</p>
+						) : (
+							<Table>
+								<TableHeader>
+									<TableRow>
+										<TableHead>Date</TableHead>
+										<TableHead>Clock in</TableHead>
+										<TableHead>Clock out</TableHead>
+										<TableHead>Location</TableHead>
+										<TableHead>Note</TableHead>
 									</TableRow>
-								))}
-							</TableBody>
-						</Table>
-					)}
-				</CardContent>
-			</Card>
-		</div>
+								</TableHeader>
+								<TableBody>
+									{history.map((entry) => (
+										<TableRow key={entry.id}>
+											<TableCell>{entry.date}</TableCell>
+											<TableCell>
+												<span className="flex items-center gap-2 tabular-nums">
+													{formatTime(new Date(entry.clockIn))}
+													<ClockInBadge status={entry.clockInStatus} />
+												</span>
+											</TableCell>
+											<TableCell>
+												<span className="flex items-center gap-2 tabular-nums">
+													{entry.clockOut
+														? formatTime(new Date(entry.clockOut))
+														: "—"}
+													{entry.clockOutStatus ? (
+														<ClockOutBadge status={entry.clockOutStatus} />
+													) : null}
+												</span>
+											</TableCell>
+											<TableCell>
+												<LocationCell record={entry} />
+											</TableCell>
+											<TableCell className="max-w-40 truncate text-muted-foreground">
+												{entry.note ?? "—"}
+											</TableCell>
+										</TableRow>
+									))}
+								</TableBody>
+							</Table>
+						)}
+					</CardContent>
+				</Card>
+			</div>
+			<AlertDialog
+				open={locationConfirm !== null}
+				onOpenChange={(open) => {
+					if (!open) {
+						setLocationConfirm(null);
+						setPending(false);
+					}
+				}}
+			>
+				<AlertDialogContent>
+					<AlertDialogHeader>
+						<AlertDialogTitle className="flex items-center gap-2">
+							{locationConfirm?.inside ? (
+								<CheckCircle2 className="size-5 text-emerald-600" />
+							) : (
+								<MapPin className="size-5 text-amber-600" />
+							)}
+							{locationConfirm?.inside
+								? `You're inside ${locationConfirm.siteName}`
+								: `You're outside ${locationConfirm?.siteName ?? "your work site"}`}
+						</AlertDialogTitle>
+						<AlertDialogDescription>
+							{locationConfirm?.inside
+								? `Your location is within the work site boundary (${locationConfirm.distanceM}m from ${locationConfirm.siteName}).`
+								: `You are ${locationConfirm?.distanceM ?? "?"}m from the work site boundary — this clock ${locationConfirm?.action === "in" ? "in" : "out"} will be flagged as outside the geofence.`}
+						</AlertDialogDescription>
+					</AlertDialogHeader>
+					<AlertDialogFooter>
+						<AlertDialogCancel>Cancel</AlertDialogCancel>
+						<AlertDialogAction
+							onClick={() => {
+								if (locationConfirm) {
+									if (locationConfirm.action === "in") {
+										void runClockIn(locationConfirm.coords);
+									} else {
+										void runClockOut(locationConfirm.coords);
+									}
+								}
+								setLocationConfirm(null);
+							}}
+						>
+							Confirm clock {locationConfirm?.action === "in" ? "in" : "out"}
+						</AlertDialogAction>
+					</AlertDialogFooter>
+				</AlertDialogContent>
+			</AlertDialog>
+		</>
 	);
 }
 
