@@ -85,9 +85,9 @@ function LocationBadge({
 	}
 	return (
 		<span
-			className={`rounded px-1 py-0.5 text-[10px] ${
+			className={`rounded px-1 py-0.5 text-xs ${
 				status === "outside"
-					? "bg-destructive/10 text-destructive"
+					? "bg-red-500/10 text-red-700 dark:bg-red-400/10 dark:text-red-400"
 					: "bg-muted text-muted-foreground"
 			}`}
 			title={accuracyM ? `GPS accuracy ±${Math.round(accuracyM)}m` : undefined}
@@ -279,7 +279,7 @@ export function AttendanceHeatmap({ days }: { days: HeatDay[] }) {
 					</div>
 				</div>
 			</div>
-			<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
+			<div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
 				{[
 					["present", "Present"],
 					["issue", "Attendance issue"],

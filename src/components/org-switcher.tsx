@@ -1,7 +1,6 @@
 import { useRouter } from "@tanstack/react-router";
 import { CalendarCheck, Check, ChevronsUpDown, Plus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { toast } from "#/lib/toast";
 import { Button } from "#/components/ui/button";
 import {
 	Dialog,
@@ -29,6 +28,7 @@ import {
 	useSidebar,
 } from "#/components/ui/sidebar";
 import { authClient } from "#/lib/auth-client";
+import { toast } from "#/lib/toast";
 
 export function OrgSwitcher() {
 	const router = useRouter();
@@ -68,7 +68,10 @@ export function OrgSwitcher() {
 		});
 
 		if (createError || !data) {
-			toast.error(createError?.message ?? "Something went wrong");
+			toast.error(
+				createError?.message ??
+					"Unable to create the workspace. Check your connection and try again.",
+			);
 			setPending(false);
 			return;
 		}
@@ -98,7 +101,7 @@ export function OrgSwitcher() {
 									<CalendarCheck className="size-4" />
 								)}
 							</span>
-							<span className="flex flex-1 flex-col gap-0.5 leading-none">
+							<span className="flex flex-1 flex-col gap-0.5 leading-tight">
 								<span className="truncate font-semibold">
 									{activeOrg?.name ?? "Attendance"}
 								</span>

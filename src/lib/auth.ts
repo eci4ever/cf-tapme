@@ -71,7 +71,7 @@ function createAuth() {
 					subject: `Verify your email address on ${brand}`,
 					html: `
 						<p>Hi ${user.name},</p>
-						<p>Please verify your email address to activate your ${brand} account.</p>
+						<p>Verify your email address to activate your ${brand} account.</p>
 						<p><a href="${url}">Verify email address</a></p>
 					`,
 				});

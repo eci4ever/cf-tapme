@@ -420,7 +420,7 @@ export const subscribePlan = createServerFn({ method: "POST" })
 		if (org.balanceSen < priceSen) {
 			return {
 				ok: false as const,
-				reason: `Insufficient balance — ${PLANS[planId].name} for ${months} month${months > 1 ? "s" : ""} costs RM${(priceSen / 100).toFixed(2)}. Please top up first.`,
+				reason: `Insufficient balance — ${PLANS[planId].name} for ${months} month${months > 1 ? "s" : ""} costs RM${(priceSen / 100).toFixed(2)}. Top up first, then subscribe.`,
 			};
 		}
 

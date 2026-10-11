@@ -67,7 +67,7 @@ function ResetPasswordPage() {
 			toast.error(resetError.message ?? "Failed to reset password");
 			return;
 		}
-		toast.success("Password updated. Please sign in with your new password.");
+		toast.success("Password updated. Sign in with your new password.");
 		await router.navigate({ to: "/login" });
 	}
 

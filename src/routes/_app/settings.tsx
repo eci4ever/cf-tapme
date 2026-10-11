@@ -1311,14 +1311,14 @@ function SiteEditor({ site, onSaved }: { site: SiteRow; onSaved: () => void }) {
 					<p className="flex items-center gap-2 text-sm font-medium">
 						{site.name}
 						{unconfigured ? (
-							<span className="flex items-center gap-1 rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400">
+							<span className="flex items-center gap-1 rounded bg-warning-tint/10 px-1.5 py-0.5 text-xs font-medium text-warning">
 								<AlertTriangle className="size-3" />
 								Setup needed
 							</span>
 						) : null}
 					</p>
 					<p
-						className={`text-xs ${unconfigured ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground"}`}
+						className={`text-xs ${unconfigured ? "text-warning" : "text-muted-foreground"}`}
 					>
 						{site.lat === null || site.lng === null
 							? "Coordinates not set — employees of this site cannot clock in. Edit and use your current location."

@@ -36,7 +36,7 @@ function SignupPage() {
 	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		if (!captchaToken) {
-			toast.error("Please complete the human verification first");
+			toast.error("Complete the human verification first");
 			return;
 		}
 		setPending(true);
@@ -55,7 +55,9 @@ function SignupPage() {
 		setPending(false);
 
 		if (signUpError) {
-			toast.error(signUpError.message ?? "Something went wrong");
+			toast.error(
+				signUpError.message ?? "Unable to create your account. Check your connection and try again.",
+			);
 			return;
 		}
 

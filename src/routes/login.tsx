@@ -40,7 +40,7 @@ function LoginPage() {
 	async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		if (!captchaToken) {
-			toast.error("Please complete the human verification first");
+			toast.error("Complete the human verification first");
 			return;
 		}
 		setPending(true);
@@ -58,7 +58,9 @@ function LoginPage() {
 		setPending(false);
 
 		if (signInError) {
-			toast.error(signInError.message ?? "Something went wrong");
+			toast.error(
+					signInError.message ?? "Unable to sign in. Check your connection and try again.",
+				);
 			return;
 		}
 

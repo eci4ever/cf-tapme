@@ -252,7 +252,7 @@ function AttendanceTrendCard({
 									key={week.weekStart}
 									className="flex min-w-0 flex-1 flex-col items-center gap-1"
 								>
-									<span className="text-[10px] tabular-nums text-muted-foreground">
+									<span className="text-xs tabular-nums text-muted-foreground">
 										{week.rate === null ? "—" : `${week.rate}%`}
 									</span>
 									<div className="flex h-24 w-full items-end rounded bg-muted/40">
@@ -261,14 +261,14 @@ function AttendanceTrendCard({
 											style={{ height: `${height}%` }}
 										/>
 									</div>
-									<span className="text-[10px] tabular-nums text-muted-foreground">
+									<span className="text-xs tabular-nums text-muted-foreground">
 										{new Date(`${week.weekStart}T00:00:00Z`).toLocaleDateString(
 											"en-US",
 											{ day: "numeric", month: "short", timeZone: "UTC" },
 										)}
 									</span>
 									<span
-										className={`text-[10px] tabular-nums ${week.late > 0 ? "text-amber-600 dark:text-amber-400" : "text-muted-foreground"}`}
+										className={`text-xs tabular-nums ${week.late > 0 ? "text-warning" : "text-muted-foreground"}`}
 									>
 										{week.late} late
 									</span>

@@ -166,7 +166,7 @@ function RowContent({
 					{item.body}
 				</span>
 			) : null}
-			<span className="pl-4 text-[11px] text-muted-foreground/70">
+			<span className="pl-4 text-xs text-muted-foreground/70">
 				{timeAgo(new Date(item.createdAt))}
 			</span>
 		</>

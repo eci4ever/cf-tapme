@@ -96,7 +96,9 @@ function OnboardingPage() {
 		});
 
 		if (error || !data) {
-			toast.error(error?.message ?? "Something went wrong");
+			toast.error(
+				error?.message ?? "Unable to create your organization. Check your connection and try again.",
+			);
 			setCreatePending(false);
 			return;
 		}

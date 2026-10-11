@@ -210,7 +210,10 @@ function MyLeaveTab() {
 						</Button>
 					</div>
 					{overview.requests.length === 0 ? (
-						<p className="text-sm text-muted-foreground">No requests yet.</p>
+						<p className="text-sm text-muted-foreground">
+							No requests yet — apply for leave above and your request will
+							appear here while it awaits a decision.
+						</p>
 					) : (
 						<Table>
 							<TableHeader>
@@ -633,7 +636,9 @@ function ApprovalsTab() {
 			</CardHeader>
 			<CardContent>
 				{data.requests.length === 0 ? (
-					<p className="text-sm text-muted-foreground">No pending requests.</p>
+					<p className="text-sm text-muted-foreground">
+					No pending requests — you are all caught up.
+				</p>
 				) : (
 					<div className="flex flex-col gap-3">
 						{data.requests.map((request) => (
