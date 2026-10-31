@@ -8,6 +8,13 @@
       "when": 1789730512574,
       "tag": "0000_baseline",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "6",
+      "when": 1793409999444,
+      "tag": "0001_bright_anthem",
+      "breakpoints": true
     }
   ]
 }

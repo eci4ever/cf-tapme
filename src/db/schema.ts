@@ -59,7 +59,9 @@ export const account = sqliteTable(
 		userId: text("user_id")
 			.notNull()
 			.references(() => user.id, { onDelete: "cascade" }),
-		issuer: text("issuer").notNull(),
+		// better-auth 1.7.3+ no longer writes issuer — nullable so account
+		// inserts succeed; existing rows keep their values
+		issuer: text("issuer"),
 		accountId: text("account_id").notNull(),
 		providerId: text("provider_id").notNull(),
 		accessToken: text("access_token"),
